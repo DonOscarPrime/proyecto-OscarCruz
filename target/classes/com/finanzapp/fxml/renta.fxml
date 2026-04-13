@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.finanzapp.controller.RentaController"
+      styleClass="page" spacing="16">
+
+    <Label text="Calculadora de la Renta" styleClass="page-title"/>
+    <Label text="Estimación del IRPF anual. Solo orientativa — no sustituye a la declaración oficial."
+           styleClass="subtitle" wrapText="true"/>
+
+    <HBox spacing="12">
+
+        <!-- Inputs -->
+        <VBox styleClass="card" spacing="10" prefWidth="380">
+            <Label text="DATOS PERSONALES" styleClass="card-title"/>
+
+            <Label text="Comunidad Autónoma" styleClass="form-label"/>
+            <ComboBox fx:id="cmbComunidad" maxWidth="Infinity" styleClass="form-input"/>
+
+            <Label text="Situación personal" styleClass="form-label"/>
+            <ComboBox fx:id="cmbSituacion" maxWidth="Infinity" styleClass="form-input"/>
+
+            <Label text="Hijos menores de 25 años a cargo" styleClass="form-label"/>
+            <Spinner fx:id="spinHijos" min="0" max="10" initialValue="0" editable="true" maxWidth="Infinity"/>
+
+            <Separator/>
+            <Label text="RENDIMIENTOS DEL TRABAJO" styleClass="card-title"/>
+
+            <Label text="Salario bruto anual (€)" styleClass="form-label"/>
+            <TextField fx:id="txtSalario" promptText="25000" styleClass="form-input"/>
+
+            <Label text="Retenciones ya practicadas (€)" styleClass="form-label"/>
+            <TextField fx:id="txtRetenciones" promptText="3500" styleClass="form-input"/>
+
+            <Separator/>
+            <Label text="OTRAS RENTAS (opcional)" styleClass="card-title"/>
+
+            <Label text="Rendimientos del capital mobiliario (€)" styleClass="form-label"/>
+            <TextField fx:id="txtCapMob" promptText="0" styleClass="form-input"/>
+
+            <Label text="Rendimientos del capital inmobiliario (€)" styleClass="form-label"/>
+            <TextField fx:id="txtCapInm" promptText="0" styleClass="form-input"/>
+
+            <Label text="Ganancias patrimoniales (€)" styleClass="form-label"/>
+            <TextField fx:id="txtGanancias" promptText="0" styleClass="form-input"/>
+
+            <Button text="Calcular IRPF" styleClass="btn-primary" maxWidth="Infinity" onAction="#calcular"/>
+        </VBox>
+
+        <!-- Resultados -->
+        <VBox spacing="12" HBox.hgrow="ALWAYS">
+
+            <VBox fx:id="resultPanel" styleClass="card" spacing="10" visible="false" managed="false">
+                <Label text="RESULTADO DE LA DECLARACIÓN" styleClass="card-title"/>
+
+                <HBox spacing="12">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="Base imponible general" styleClass="stat-label"/>
+                        <Label fx:id="lblBase" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="Cuota íntegra estimada" styleClass="stat-label"/>
+                        <Label fx:id="lblCuota" styleClass="stat-value stat-down"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="Retenciones practicadas" styleClass="stat-label"/>
+                        <Label fx:id="lblRetenciones" styleClass="stat-value stat-up"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="Resultado (a pagar / devolver)" styleClass="stat-label"/>
+                        <Label fx:id="lblResultado" styleClass="stat-value" style="-fx-font-size:28px;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Tramos -->
+                <Label text="TRAMOS IRPF APLICADOS" styleClass="card-title"/>
+                <VBox fx:id="tramosBox" spacing="4"/>
+            </VBox>
+
+            <VBox styleClass="tip-card" spacing="8">
+                <Label text="⚠ Aviso legal" style="-fx-font-weight:600;-fx-text-fill:#BA7517;-fx-font-size:13px;"/>
+                <Label text="Esta calculadora es orientativa y no tiene en cuenta todas las deducciones autonómicas, circunstancias personales ni cambios normativos. Consulta siempre a un asesor fiscal o usa el programa oficial de la AEAT."
+                       wrapText="true" styleClass="tip-text"/>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>

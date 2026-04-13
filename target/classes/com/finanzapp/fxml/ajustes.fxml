@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.finanzapp.controller.AjustesController"
+      styleClass="page" spacing="16">
+
+    <HBox alignment="CENTER_LEFT">
+        <Label text="Ajustes" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <HBox spacing="16">
+        <VBox spacing="12" maxWidth="600" HBox.hgrow="ALWAYS">
+
+            <!-- Apariencia -->
+            <VBox styleClass="card" spacing="10">
+                <Label text="APARIENCIA" styleClass="card-title"/>
+                <HBox spacing="10">
+                    <VBox styleClass="theme-btn-active" alignment="CENTER" spacing="4"
+                          prefWidth="100" onMouseClicked="#temaClaro" fx:id="btnClaro">
+                        <Label text="☀" style="-fx-font-size:20px;"/>
+                        <Label text="Claro" style="-fx-font-size:12px;-fx-font-weight:500;"/>
+                    </VBox>
+                    <VBox styleClass="theme-btn" alignment="CENTER" spacing="4"
+                          prefWidth="100" onMouseClicked="#temaOscuro" fx:id="btnOscuro">
+                        <Label text="🌙" style="-fx-font-size:20px;"/>
+                        <Label text="Oscuro" style="-fx-font-size:12px;-fx-font-weight:500;"/>
+                    </VBox>
+                </HBox>
+                <Label text="Nota: el tema oscuro completo se aplicará en la próxima versión."
+                       styleClass="hint-label" wrapText="true"/>
+            </VBox>
+
+            <!-- General -->
+            <VBox styleClass="card" spacing="10">
+                <Label text="GENERAL" styleClass="card-title"/>
+                <Label text="Idioma" styleClass="form-label"/>
+                <ComboBox fx:id="cmbIdioma" maxWidth="Infinity" styleClass="form-input"/>
+                <Label text="Moneda" styleClass="form-label"/>
+                <ComboBox fx:id="cmbMoneda" maxWidth="Infinity" styleClass="form-input"/>
+                <Label text="Comunidad Autónoma (para cálculo de renta)" styleClass="form-label"/>
+                <ComboBox fx:id="cmbComunidad" maxWidth="Infinity" styleClass="form-input"/>
+            </VBox>
+
+            <!-- Notificaciones -->
+            <VBox styleClass="card" spacing="10">
+                <Label text="NOTIFICACIONES" styleClass="card-title"/>
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Alerta de presupuesto mensual" styleClass="form-label" HBox.hgrow="ALWAYS"/>
+                    <CheckBox fx:id="chkPresupuesto" selected="true"/>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Recordatorio de objetivos" styleClass="form-label" HBox.hgrow="ALWAYS"/>
+                    <CheckBox fx:id="chkObjetivos" selected="true"/>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Resumen mensual" styleClass="form-label" HBox.hgrow="ALWAYS"/>
+                    <CheckBox fx:id="chkResumen" selected="false"/>
+                </HBox>
+            </VBox>
+
+            <!-- Acerca de -->
+            <VBox styleClass="card" spacing="0">
+                <Label text="ACERCA DE" styleClass="card-title" style="-fx-padding:0 0 10 0;"/>
+                <HBox styleClass="data-row"><Label text="Versión"      styleClass="data-key"/><Label text="1.0.0"               styleClass="data-val" style="-fx-font-family:monospace;"/></HBox>
+                <HBox styleClass="data-row"><Label text="Desarrollado por" styleClass="data-key"/><Label text="Óscar Cruz · 2º DAM" styleClass="data-val"/></HBox>
+                <HBox styleClass="data-row" style="-fx-border-width:0;"><Label text="Tecnología" styleClass="data-key"/><Label text="JavaFX 21 + MySQL 8" styleClass="data-val"/></HBox>
+            </VBox>
+
+            <HBox spacing="8">
+                <Button text="Guardar ajustes" styleClass="btn-primary" onAction="#guardar"/>
+                <Label fx:id="lblMsg" styleClass="info-label"/>
+            </HBox>
+
+        </VBox>
+    </HBox>
+</VBox>

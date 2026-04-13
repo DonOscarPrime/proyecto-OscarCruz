@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.finanzapp.controller.ObjetivosController"
+      styleClass="page" spacing="16">
+
+    <HBox alignment="CENTER_LEFT">
+        <Label text="Objetivos de ahorro" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+        <Button text="+ Nuevo objetivo" styleClass="btn-primary" onAction="#toggleForm"/>
+    </HBox>
+
+    <!-- Formulario nuevo objetivo -->
+    <VBox fx:id="formPanel" styleClass="card" spacing="10" visible="false" managed="false">
+        <Label text="NUEVO OBJETIVO" styleClass="card-title"/>
+        <HBox spacing="10">
+            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                <Label text="Nombre del objetivo" styleClass="form-label"/>
+                <TextField fx:id="txtNombre" promptText="Ej. Viaje a Japón" styleClass="form-input"/>
+            </VBox>
+            <VBox spacing="6">
+                <Label text="Emoji" styleClass="form-label"/>
+                <TextField fx:id="txtEmoji" promptText="🎯" styleClass="form-input" prefWidth="60"/>
+            </VBox>
+        </HBox>
+        <HBox spacing="10">
+            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                <Label text="Importe objetivo (€)" styleClass="form-label"/>
+                <TextField fx:id="txtObjetivo" promptText="3000" styleClass="form-input"/>
+            </VBox>
+            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                <Label text="Aportado hasta ahora (€)" styleClass="form-label"/>
+                <TextField fx:id="txtActual" promptText="0" styleClass="form-input"/>
+            </VBox>
+            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                <Label text="Fecha límite (opcional)" styleClass="form-label"/>
+                <DatePicker fx:id="dateLimite" styleClass="form-input"/>
+            </VBox>
+        </HBox>
+        <Label fx:id="lblError" styleClass="error-label" wrapText="true"/>
+        <HBox spacing="8">
+            <Button text="Guardar objetivo" styleClass="btn-primary" onAction="#guardar"/>
+            <Button text="Cancelar"         styleClass="btn-ghost"   onAction="#toggleForm"/>
+        </HBox>
+    </VBox>
+
+    <!-- Grid de objetivos -->
+    <FlowPane fx:id="objetivosGrid" hgap="16" vgap="16"/>
+
+</VBox>

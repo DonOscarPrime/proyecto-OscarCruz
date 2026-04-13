@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.finanzapp.controller.MainController"
+            styleClass="root-pane" prefWidth="1200" prefHeight="750">
+
+    <!-- ── TOP NAV ── -->
+    <top>
+        <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="6">
+            <Label text="● FinanzApp" styleClass="logo"/>
+            <HBox spacing="4" HBox.hgrow="ALWAYS">
+                <Button fx:id="navDashboard"      text="Dashboard"      styleClass="nav-tab,nav-tab-active" onAction="#showDashboard"/>
+                <Button fx:id="navGastos"         text="Ingresos/Gastos" styleClass="nav-tab"              onAction="#showGastos"/>
+                <Button fx:id="navSimulador"      text="Simulador"      styleClass="nav-tab"               onAction="#showSimulador"/>
+                <Button fx:id="navPrestamos"      text="Préstamos"      styleClass="nav-tab"               onAction="#showPrestamos"/>
+                <Button fx:id="navObjetivos"      text="Objetivos"      styleClass="nav-tab"               onAction="#showObjetivos"/>
+                <Button fx:id="navHistorial"      text="Historial"      styleClass="nav-tab"               onAction="#showHistorial"/>
+                <Button fx:id="navRenta"          text="Renta"          styleClass="nav-tab"               onAction="#showRenta"/>
+            </HBox>
+            <!-- Notificaciones badge -->
+            <StackPane>
+                <Button fx:id="notifBtn" text="🔔" styleClass="nav-tab" onAction="#showNotificaciones"/>
+                <Label fx:id="notifBadge" styleClass="notif-badge" visible="false"/>
+            </StackPane>
+            <!-- Avatar -->
+            <Button fx:id="avatarBtn" styleClass="avatar-btn" onAction="#showPerfil"/>
+        </HBox>
+    </top>
+
+    <!-- ── CONTENT AREA ── -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" fx:id="scrollPane">
+            <StackPane fx:id="contentArea" styleClass="content-area"/>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

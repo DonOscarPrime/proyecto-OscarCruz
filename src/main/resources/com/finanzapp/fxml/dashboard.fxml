@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.canvas.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.finanzapp.controller.DashboardController"
+      styleClass="page" spacing="16" fillWidth="true">
+
+    <!-- Welcome -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <VBox spacing="2" HBox.hgrow="ALWAYS">
+            <Label fx:id="lblBienvenida" styleClass="page-title"/>
+            <Label fx:id="lblFecha"      styleClass="subtitle"/>
+        </VBox>
+        <Button text="+ Añadir gasto"   styleClass="btn-primary"  onAction="#irGastos"/>
+        <Button text="+ Añadir ingreso" styleClass="btn-ghost"    onAction="#irGastos"/>
+        <Button text="+ Crear objetivo" styleClass="btn-ghost"    onAction="#irObjetivos"/>
+    </HBox>
+
+    <!-- Stat cards -->
+    <HBox spacing="12">
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <Label text="Saldo disponible" styleClass="stat-label"/>
+            <Label fx:id="statSaldo"       styleClass="stat-value stat-up"/>
+            <Label text="balance actual"   styleClass="stat-sub"/>
+        </VBox>
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <Label text="Ingresos del mes" styleClass="stat-label"/>
+            <Label fx:id="statIngresos"    styleClass="stat-value stat-up"/>
+            <Label fx:id="subIngresos"     styleClass="stat-sub"/>
+        </VBox>
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <Label text="Gastos del mes"   styleClass="stat-label"/>
+            <Label fx:id="statGastos"      styleClass="stat-value stat-down"/>
+            <Label fx:id="subGastos"       styleClass="stat-sub"/>
+        </VBox>
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <Label text="Tasa de ahorro"   styleClass="stat-label"/>
+            <Label fx:id="statAhorro"      styleClass="stat-value"/>
+            <Label text="de los ingresos"  styleClass="stat-sub"/>
+        </VBox>
+    </HBox>
+
+    <!-- Charts row -->
+    <HBox spacing="12">
+        <!-- Donut categorías -->
+        <VBox styleClass="card" spacing="12" HBox.hgrow="ALWAYS">
+            <Label text="GASTOS POR CATEGORÍA" styleClass="card-title"/>
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <Canvas fx:id="donutCanvas" width="120" height="120"/>
+                <VBox fx:id="donutLegend" spacing="6" HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+        <!-- Bar chart evolución -->
+        <VBox styleClass="card" spacing="12" HBox.hgrow="ALWAYS">
+            <Label text="EVOLUCIÓN MENSUAL" styleClass="card-title"/>
+            <Canvas fx:id="barCanvas" width="340" height="120"/>
+            <HBox spacing="16">
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="■" style="-fx-text-fill:#1D9E75;-fx-font-size:10px;"/>
+                    <Label text="Ingresos" styleClass="stat-sub"/>
+                </HBox>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="■" style="-fx-text-fill:#D85A30;-fx-font-size:10px;"/>
+                    <Label text="Gastos" styleClass="stat-sub"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </HBox>
+
+    <!-- Últimos movimientos -->
+    <HBox alignment="CENTER_LEFT">
+        <Label text="Últimos movimientos" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+        <Button text="Ver todo →" styleClass="link-btn" onAction="#irHistorial"/>
+    </HBox>
+    <VBox fx:id="txList" styleClass="card" spacing="0"/>
+
+    <!-- Objetivos rápidos -->
+    <HBox alignment="CENTER_LEFT">
+        <Label text="Mis objetivos" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+        <Button text="Ver todos →" styleClass="link-btn" onAction="#irObjetivos"/>
+    </HBox>
+    <HBox fx:id="objetivosBox" spacing="12"/>
+
+</VBox>

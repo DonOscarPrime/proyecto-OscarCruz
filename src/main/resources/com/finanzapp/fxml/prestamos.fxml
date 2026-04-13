@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.finanzapp.controller.PrestamosController"
+      styleClass="page" spacing="16">
+
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <VBox HBox.hgrow="ALWAYS">
+            <Label text="Simulador de préstamos" styleClass="page-title"/>
+            <Label text="Calcula tu cuota mensual, intereses y coste total al instante." styleClass="subtitle"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12" VBox.vgrow="ALWAYS">
+
+        <!-- Inputs -->
+        <VBox spacing="12" prefWidth="360" minWidth="300">
+
+            <!-- Tipo de préstamo -->
+            <VBox styleClass="card" spacing="10">
+                <Label text="TIPO DE PRÉSTAMO" styleClass="card-title"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button fx:id="btnPersonal"     text="Personal"     styleClass="loan-type-btn,loan-type-active" onAction="#setTipo"/>
+                    <Button fx:id="btnHipoteca"     text="Hipoteca"     styleClass="loan-type-btn"                  onAction="#setTipo"/>
+                    <Button fx:id="btnCoche"        text="Coche"        styleClass="loan-type-btn"                  onAction="#setTipo"/>
+                    <Button fx:id="btnEstudios"     text="Estudios"     styleClass="loan-type-btn"                  onAction="#setTipo"/>
+                </FlowPane>
+            </VBox>
+
+            <!-- Datos -->
+            <VBox styleClass="card" spacing="10">
+                <Label text="DATOS DEL PRÉSTAMO" styleClass="card-title"/>
+
+                <Label text="Capital solicitado (€)" styleClass="form-label"/>
+                <Slider fx:id="sliderCapital" min="500" max="60000" value="10000" blockIncrement="500"/>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="500€" styleClass="stat-sub" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblCapitalVal" styleClass="slider-val"/>
+                    <Label text="60.000€" styleClass="stat-sub"/>
+                </HBox>
+
+                <Label text="Plazo (meses)" styleClass="form-label"/>
+                <Slider fx:id="sliderPlazo" min="6" max="360" value="36" blockIncrement="6"/>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="6 meses" styleClass="stat-sub" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblPlazoVal" styleClass="slider-val"/>
+                    <Label text="30 años" styleClass="stat-sub"/>
+                </HBox>
+
+                <Label text="TIN anual (%)" styleClass="form-label"/>
+                <Slider fx:id="sliderTin" min="0.5" max="25" value="6.5" blockIncrement="0.5"/>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="0,5%" styleClass="stat-sub" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTinVal" styleClass="slider-val"/>
+                    <Label text="25%" styleClass="stat-sub"/>
+                </HBox>
+
+                <Label text="Comisión apertura (%)" styleClass="form-label"/>
+                <TextField fx:id="txtComision" text="1.0" styleClass="form-input"/>
+
+                <Label text="Seguro vinculado (€/mes)" styleClass="form-label"/>
+                <TextField fx:id="txtSeguro" text="0" styleClass="form-input"/>
+            </VBox>
+        </VBox>
+
+        <!-- Resultados -->
+        <VBox spacing="12" HBox.hgrow="ALWAYS">
+
+            <!-- Cuota principal -->
+            <VBox styleClass="card-blue" spacing="8" alignment="CENTER">
+                <Label text="Pagarías cada mes" styleClass="blue-label"/>
+                <Label fx:id="lblCuota" styleClass="cuota-value"/>
+                <Label fx:id="lblCuotaSub" styleClass="blue-label"/>
+            </VBox>
+
+            <!-- Stats -->
+            <HBox spacing="12">
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                    <Label text="Total a devolver" styleClass="stat-label"/>
+                    <Label fx:id="lblTotal" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                    <Label text="Intereses totales" styleClass="stat-label"/>
+                    <Label fx:id="lblIntereses" styleClass="stat-value stat-down"/>
+                </VBox>
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                    <Label text="Coste por 100€" styleClass="stat-label"/>
+                    <Label fx:id="lblCostePor100" styleClass="stat-value stat-amber"/>
+                </VBox>
+            </HBox>
+
+            <!-- Barra capital vs intereses -->
+            <VBox styleClass="card" spacing="10">
+                <Label text="¿CÓMO SE REPARTE LO QUE PAGAS?" styleClass="card-title"/>
+                <HBox fx:id="barraDistrib" prefHeight="20" style="-fx-background-radius:6;-fx-background-color:#F0EEE9;"/>
+                <HBox spacing="16">
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="■" style="-fx-text-fill:#185FA5;-fx-font-size:10px;"/>
+                        <Label text="Capital" styleClass="stat-sub"/>
+                        <Label fx:id="lblPctCap" styleClass="stat-sub" style="-fx-font-weight:bold;"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="■" style="-fx-text-fill:#D85A30;-fx-font-size:10px;"/>
+                        <Label text="Intereses" styleClass="stat-sub"/>
+                        <Label fx:id="lblPctInt" styleClass="stat-sub" style="-fx-font-weight:bold;"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+
+            <!-- Tabla amortización (primeras filas) -->
+            <VBox styleClass="card" spacing="8">
+                <Label text="TABLA DE AMORTIZACIÓN (primeros 12 meses)" styleClass="card-title"/>
+                <ScrollPane fitToWidth="true" prefHeight="200" styleClass="scroll-pane">
+                    <TableView fx:id="tablaAmort" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colMes"   text="Mes"    prefWidth="60"/>
+                            <TableColumn fx:id="colCuota" text="Cuota"  prefWidth="90"/>
+                            <TableColumn fx:id="colCap"   text="Capital" prefWidth="90"/>
+                            <TableColumn fx:id="colInt"   text="Interés" prefWidth="90"/>
+                            <TableColumn fx:id="colSaldo" text="Saldo"   prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                </ScrollPane>
+            </VBox>
+
+            <!-- Consejo -->
+            <HBox styleClass="tip-card" spacing="12" alignment="CENTER_LEFT">
+                <Label text="💡" style="-fx-font-size:18px;"/>
+                <Label fx:id="lblConsejo" wrapText="true" HBox.hgrow="ALWAYS" styleClass="tip-text"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>
