@@ -6,6 +6,7 @@ com\finanzapp\controller\GastosController.class
 com\finanzapp\dao\HabitoDAO.class
 com\finanzapp\controller\LoginController.class
 com\finanzapp\model\Categoria.class
+com\finanzapp\util\DatabaseInitializer.class
 com\finanzapp\dao\CategoriaDAO.class
 com\finanzapp\model\Usuario.class
 com\finanzapp\model\Notificacion.class

@@ -137,14 +137,14 @@ VALUES
 -- Usuario 1 – empleado madrileño (el principal)
 ('Óscar Cruz Vázquez',
  'oscar@email.com',
- '$2a$12$eImiTXuWVxfM37uY4JANjOe5XtSYmREfBj0IpuTm4jR2wOPSsa3Gy',
+ '$2a$12$yxfqRp4hkB.ZSqd8dOlqCuEoL0OgA17viwhjUGuUmmHHDYHp14tIi',
  '+34 612 345 678', '1999-05-14', 'Madrid',
  'Empleado', 1400.00, 'Controlar mis gastos', 1100.00),
 
 -- Usuario 2 – autónoma catalana
 ('Laura Martínez Roca',
  'laura@email.com',
- '$2a$12$eImiTXuWVxfM37uY4JANjOe5XtSYmREfBj0IpuTm4jR2wOPSsa3Gy',
+ '$2a$12$yxfqRp4hkB.ZSqd8dOlqCuEoL0OgA17viwhjUGuUmmHHDYHp14tIi',
  '+34 633 210 987', '1995-11-22', 'Cataluña',
  'Autónomo', 2200.00, 'Iniciarme en inversión', 1600.00);
 
