@@ -1,6 +1,7 @@
 package com.finanzapp.controller;
 
 import com.finanzapp.dao.NotificacionDAO;
+import com.finanzapp.dao.UsuarioDAO;
 import com.finanzapp.util.Session;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
@@ -16,18 +18,27 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
-    @FXML private StackPane contentArea;
+    @FXML private BorderPane rootPane;
+    @FXML private StackPane  contentArea;
     @FXML private Button navDashboard, navGastos, navSimulador, navPrestamos,
-                         navObjetivos, navHistorial, navRenta, notifBtn, avatarBtn;
+                         navObjetivos, navHistorial, navRenta, notifBtn, avatarBtn, themeBtn;
     @FXML private Label  notifBadge;
 
-    private final NotificacionDAO notifDAO = new NotificacionDAO();
+    private final NotificacionDAO notifDAO  = new NotificacionDAO();
+    private final UsuarioDAO      usuarioDAO = new UsuarioDAO();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // Avatar initials
         String ini = Session.getInstance().getUsuarioActual().getIniciales();
         avatarBtn.setText(ini);
+
+        // Restaurar tema guardado del usuario
+        String temaGuardado = Session.getInstance().getUsuarioActual().getTema();
+        boolean dark = "oscuro".equals(temaGuardado);
+        Session.getInstance().setDarkMode(dark);
+        aplicarTema(dark);
+
         refreshNotifBadge();
         showDashboard();
     }
@@ -73,6 +84,27 @@ public class MainController implements Initializable {
             if (b != null) b.getStyleClass().remove("nav-tab-active");
         }
         if (btn != null) btn.getStyleClass().add("nav-tab-active");
+    }
+
+    // ── Modo oscuro ───────────────────────────────────────
+    @FXML public void toggleDarkMode() {
+        boolean dark = !Session.getInstance().isDarkMode();
+        Session.getInstance().setDarkMode(dark);
+        aplicarTema(dark);
+        // Persistir en la BD
+        int uid = Session.getInstance().getUsuarioActual().getId();
+        usuarioDAO.guardarTema(uid, dark ? "oscuro" : "claro");
+    }
+
+    private void aplicarTema(boolean dark) {
+        if (dark) {
+            if (!rootPane.getStyleClass().contains("dark"))
+                rootPane.getStyleClass().add("dark");
+            themeBtn.setText("☀️");
+        } else {
+            rootPane.getStyleClass().remove("dark");
+            themeBtn.setText("🌙");
+        }
     }
 
     public void refreshNotifBadge() {

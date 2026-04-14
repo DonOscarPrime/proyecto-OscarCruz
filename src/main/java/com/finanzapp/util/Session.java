@@ -2,11 +2,12 @@ package com.finanzapp.util;
 
 import com.finanzapp.model.Usuario;
 
-/** Almacena el usuario autenticado durante la sesión activa. */
+/** Almacena el usuario autenticado y preferencias de la sesión activa. */
 public class Session {
 
     private static Session instance;
     private Usuario usuarioActual;
+    private boolean darkMode = false;
 
     private Session() {}
 
@@ -17,6 +18,9 @@ public class Session {
 
     public Usuario getUsuarioActual() { return usuarioActual; }
     public void    setUsuarioActual(Usuario u) { this.usuarioActual = u; }
-    public void    cerrarSesion()  { usuarioActual = null; }
+    public void    cerrarSesion()  { usuarioActual = null; darkMode = false; }
     public boolean isLoggedIn()    { return usuarioActual != null; }
+
+    public boolean isDarkMode()           { return darkMode; }
+    public void    setDarkMode(boolean d) { this.darkMode = d; }
 }

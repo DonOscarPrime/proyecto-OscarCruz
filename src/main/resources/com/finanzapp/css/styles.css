@@ -599,3 +599,52 @@
     -fx-background-radius: 6px;
     -fx-padding: 4 10;
 }
+
+/* ══════════════════════════════════════════════════════════
+   MODO OSCURO — sobreescribe las variables de color
+   Se activa añadiendo la clase "dark" al BorderPane raíz
+   ══════════════════════════════════════════════════════════ */
+.dark {
+    -color-bg:        #131211;
+    -color-surface:   #1E1D1B;
+    -color-surface2:  #272523;
+    -color-border:    rgba(255,255,255,0.07);
+    -color-border2:   rgba(255,255,255,0.12);
+    -color-text:      #EEECE7;
+    -color-text2:     #9E9D98;
+    -color-text3:     #6B6A65;
+    -color-accent:    #1D9E75;
+    -color-accent-bg: #0D2D22;
+    -color-accent-dk: #2EC491;
+    -color-danger:    #E0623A;
+    -color-danger-bg: #2D1510;
+    -color-amber:     #D4891A;
+    -color-amber-bg:  #2D2009;
+    -color-blue:      #5B9FE0;
+    -color-blue-bg:   #0D1E30;
+}
+
+/* Ajustes finos en modo oscuro */
+.dark .table-view .table-row-cell         { -fx-background-color: -color-surface; }
+.dark .table-view .table-row-cell:odd     { -fx-background-color: -color-surface2; }
+.dark .table-view .table-row-cell:selected { -fx-background-color: -color-accent-bg; }
+.dark .scroll-bar .thumb                  { -fx-background-color: #4A4845; }
+.dark .form-input                         { -fx-border-color: #3A3835; }
+.dark .combo-box-popup .list-view         { -fx-background-color: #272523; }
+.dark .combo-box .list-cell               { -fx-background-color: -color-surface; -fx-text-fill: -color-text; }
+.dark .date-picker-popup                  { -fx-background-color: -color-surface; }
+
+/* Botón toggle tema */
+.theme-toggle-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text2;
+    -fx-font-size: 15px;
+    -fx-padding: 4 8 4 8;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+.theme-toggle-btn:hover {
+    -fx-background-color: -color-surface2;
+}
