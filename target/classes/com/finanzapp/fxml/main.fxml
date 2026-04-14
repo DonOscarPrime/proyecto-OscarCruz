@@ -2,9 +2,11 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.*?>
+<?import javafx.scene.control.Tooltip?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.finanzapp.controller.MainController"
+            fx:id="rootPane"
             styleClass="root-pane" prefWidth="1200" prefHeight="750">
 
     <!-- ── TOP NAV ── -->
@@ -25,6 +27,10 @@
                 <Button fx:id="notifBtn" text="🔔" styleClass="nav-tab" onAction="#showNotificaciones"/>
                 <Label fx:id="notifBadge" styleClass="notif-badge" visible="false"/>
             </StackPane>
+            <!-- Toggle modo oscuro -->
+            <Button fx:id="themeBtn" text="🌙" styleClass="theme-toggle-btn" onAction="#toggleDarkMode">
+                <tooltip><Tooltip text="Cambiar tema"/></tooltip>
+            </Button>
             <!-- Avatar -->
             <Button fx:id="avatarBtn" styleClass="avatar-btn" onAction="#showPerfil"/>
         </HBox>

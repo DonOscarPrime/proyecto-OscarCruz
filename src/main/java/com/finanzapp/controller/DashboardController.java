@@ -1,6 +1,5 @@
 package com.finanzapp.controller;
 
-import com.finanzapp.MainApp;
 import com.finanzapp.dao.MovimientoDAO;
 import com.finanzapp.dao.ObjetivoDAO;
 import com.finanzapp.model.Movimiento;
@@ -24,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class DashboardController implements Initializable {
+public class DashboardController implements Initializable, MainController.ChildController {
 
     @FXML private Label lblBienvenida, lblFecha;
     @FXML private Label statSaldo, statIngresos, statGastos, statAhorro;
@@ -35,6 +34,10 @@ public class DashboardController implements Initializable {
 
     private final MovimientoDAO movDAO = new MovimientoDAO();
     private final ObjetivoDAO   objDAO = new ObjetivoDAO();
+    private MainController main;
+
+    @Override
+    public void setMain(MainController main) { this.main = main; }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -227,9 +230,9 @@ public class DashboardController implements Initializable {
         }
     }
 
-    @FXML void irGastos()    { MainApp.navigateTo("main"); /* handled by MainController */ }
-    @FXML void irObjetivos() { MainApp.navigateTo("main"); }
-    @FXML void irHistorial() { MainApp.navigateTo("main"); }
+    @FXML void irGastos()    { if (main != null) main.showGastos(); }
+    @FXML void irObjetivos() { if (main != null) main.showObjetivos(); }
+    @FXML void irHistorial() { if (main != null) main.showHistorial(); }
 
     private String fmt(double v) { return String.format("%,.0f", v).replace(",", "."); }
 }
