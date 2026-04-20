@@ -81,6 +81,15 @@
                 <!-- Tramos -->
                 <Label text="TRAMOS IRPF APLICADOS" styleClass="card-title"/>
                 <VBox fx:id="tramosBox" spacing="4"/>
+
+                <Separator/>
+
+                <!-- Exportar PDF -->
+                <Button text="📄  Exportar informe PDF"
+                        styleClass="btn-primary"
+                        maxWidth="Infinity"
+                        onAction="#exportarPDF"/>
+                <Label fx:id="lblPdfStatus" text="" styleClass="info-label" wrapText="true"/>
             </VBox>
 
             <VBox styleClass="tip-card" spacing="8">
