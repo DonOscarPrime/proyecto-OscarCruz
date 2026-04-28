@@ -23,6 +23,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador del panel principal (dashboard) de Fox Wallet.
+ * <p>
+ * Muestra el resumen financiero del mes en curso: saldo, ingresos y gastos totales,
+ * tasa de ahorro, gráfico donut por categorías, gráfico de barras de los últimos
+ * 6 meses, las 5 transacciones más recientes y los objetivos de ahorro pendientes.
+ */
 public class DashboardController implements Initializable, MainController.ChildController {
 
     @FXML private Label lblBienvenida, lblFecha;
@@ -46,10 +53,10 @@ public class DashboardController implements Initializable, MainController.ChildC
         lblFecha.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy", new Locale("es"))));
 
         LocalDate now = LocalDate.now();
-        List<Movimiento> mes = movDAO.listarPorMes(u.getId(), now.getYear(), now.getMonthValue());
+        List<Movimiento> movimientosMesActual = movDAO.obtenerMovimientosPorMes(u.getId(), now.getYear(), now.getMonthValue());
 
-        double ingresos = mes.stream().filter(Movimiento::isIngreso).mapToDouble(Movimiento::getCantidad).sum();
-        double gastos   = mes.stream().filter(m -> !m.isIngreso()).mapToDouble(Movimiento::getCantidad).sum();
+        double ingresos = movimientosMesActual.stream().filter(Movimiento::isIngreso).mapToDouble(Movimiento::getCantidad).sum();
+        double gastos   = movimientosMesActual.stream().filter(m -> !m.isIngreso()).mapToDouble(Movimiento::getCantidad).sum();
         double saldo    = ingresos - gastos;
         double tasa     = ingresos > 0 ? (saldo / ingresos) * 100 : 0;
 
@@ -63,14 +70,14 @@ public class DashboardController implements Initializable, MainController.ChildC
         statAhorro.setText(String.format("%.0f%%", tasa));
         statAhorro.getStyleClass().add(tasa >= 20 ? "stat-up" : tasa >= 0 ? "stat-amber" : "stat-down");
 
-        drawDonut(mes);
-        drawBarChart(u.getId(), now);
-        renderMovimientos(movDAO.listarUltimos(u.getId(), 5));
-        renderObjetivos(objDAO.listarPorUsuario(u.getId()));
+        dibujarGraficoDonutGastos(movimientosMesActual);
+        dibujarGraficoBarrasMensual(u.getId(), now);
+        mostrarTransaccionesRecientes(movDAO.obtenerUltimosMovimientos(u.getId(), 5));
+        mostrarTarjetasObjetivosPendientes(objDAO.obtenerObjetivosDeUsuario(u.getId()));
     }
 
-    // ── Donut chart ──────────────────────────────────────────
-    private void drawDonut(List<Movimiento> movs) {
+    // ── Gráfico donut: distribución de gastos por categoría ──────────────
+    private void dibujarGraficoDonutGastos(List<Movimiento> movs) {
         Map<String, Double> cats = movs.stream()
             .filter(m -> !m.isIngreso())
             .collect(Collectors.groupingBy(
@@ -126,8 +133,8 @@ public class DashboardController implements Initializable, MainController.ChildC
         }
     }
 
-    // ── Bar chart ────────────────────────────────────────────
-    private void drawBarChart(int uid, LocalDate now) {
+    // ── Gráfico de barras: ingresos vs gastos últimos 6 meses ────────────
+    private void dibujarGraficoBarrasMensual(int uid, LocalDate now) {
         GraphicsContext gc = barCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, 340, 120);
 
@@ -138,7 +145,7 @@ public class DashboardController implements Initializable, MainController.ChildC
 
         for (int i = 5; i >= 0; i--) {
             LocalDate d = now.minusMonths(i);
-            List<Movimiento> movs = movDAO.listarPorMes(uid, d.getYear(), d.getMonthValue());
+            List<Movimiento> movs = movDAO.obtenerMovimientosPorMes(uid, d.getYear(), d.getMonthValue());
             int idx = 5 - i;
             labels[idx] = meses[d.getMonthValue() - 1];
             ing[idx]  = movs.stream().filter(Movimiento::isIngreso).mapToDouble(Movimiento::getCantidad).sum();
@@ -167,8 +174,8 @@ public class DashboardController implements Initializable, MainController.ChildC
         }
     }
 
-    // ── Movimientos list ─────────────────────────────────────
-    private void renderMovimientos(List<Movimiento> movs) {
+    // ── Lista de transacciones recientes en el panel ─────────────────────
+    private void mostrarTransaccionesRecientes(List<Movimiento> movs) {
         txList.getChildren().clear();
         for (Movimiento m : movs) {
             HBox row = new HBox(12);
@@ -204,8 +211,8 @@ public class DashboardController implements Initializable, MainController.ChildC
         }
     }
 
-    // ── Objetivos ────────────────────────────────────────────
-    private void renderObjetivos(List<Objetivo> objs) {
+    // ── Tarjetas de objetivos de ahorro pendientes ───────────────────────
+    private void mostrarTarjetasObjetivosPendientes(List<Objetivo> objs) {
         objetivosBox.getChildren().clear();
         for (Objetivo o : objs.stream().filter(ob -> !ob.isCompletado()).limit(3).toList()) {
             VBox card = new VBox(8);

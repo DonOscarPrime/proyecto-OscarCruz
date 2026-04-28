@@ -7,23 +7,33 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
 /**
- * Crea las tablas e inserta los datos demo la primera vez que arranca la app.
- * No hace nada si las tablas ya existen.
+ * Inicializa el esquema de Fox Wallet en MySQL la primera vez que arranca la app.
+ * <p>
+ * Si la tabla {@code usuarios} ya existe, asume que el esquema está creado y solo
+ * verifica que los procedimientos almacenados estén presentes (por compatibilidad
+ * con instalaciones anteriores). En caso contrario, crea todas las tablas,
+ * los procedimientos almacenados y los datos de demostración.
  */
 public class DatabaseInitializer {
 
-    public static void initIfNeeded(Connection c) {
+    /**
+     * Punto de entrada principal: inicializa el esquema de Fox Wallet si es necesario.
+     * Se llama desde {@link DatabaseConnection} tras abrir la primera conexión.
+     *
+     * @param conexion conexión activa a MySQL
+     */
+    public static void inicializarEsquemaFoxWallet(Connection conexion) {
         try {
-            DatabaseMetaData meta = c.getMetaData();
+            DatabaseMetaData meta = conexion.getMetaData();
             ResultSet rs = meta.getTables(null, null, "usuarios", null);
             if (rs.next()) {
                 // Las tablas ya existen; asegurarse de que los procedimientos también
-                ensureStoredProcedures(c);
+                verificarProcedimientosAlmacenados(conexion);
                 return;
             }
-            createSchema(c);
-            createStoredProcedures(c);
-            insertDemoData(c);
+            crearEsquemaTablas(conexion);
+            crearProcedimientosAlmacenados(conexion);
+            insertarDatosDemo(conexion);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -34,20 +44,24 @@ public class DatabaseInitializer {
      * Se llama tanto en primera inicialización como en arranques posteriores
      * para que usuarios con versiones anteriores de la BD también los obtengan.
      */
-    public static void ensureStoredProcedures(Connection c) {
+    /**
+     * Verifica que los procedimientos almacenados de Fox Wallet existan y los crea si faltan.
+     * Se ejecuta también en cada arranque para garantizar compatibilidad con versiones anteriores.
+     */
+    public static void verificarProcedimientosAlmacenados(Connection conexion) {
         try {
-            createStoredProcedures(c);
+            crearProcedimientosAlmacenados(conexion);
         } catch (SQLException e) {
             // Si ya existen (error 1304) lo ignoramos silenciosamente
-            if (e.getErrorCode() != 1304) e.printStackTrace();
+            if (e.getErrorCode() != 1304) e.printStackTrace(); // 1304 = procedure already exists
         }
     }
 
     // ─────────────────────────────────────────────────────────
-    //  Esquema
+    //  Creación de tablas del esquema de Fox Wallet
     // ─────────────────────────────────────────────────────────
 
-    private static void createSchema(Connection c) throws SQLException {
+    private static void crearEsquemaTablas(Connection c) throws SQLException {
         try (Statement st = c.createStatement()) {
 
             st.execute("""
@@ -159,7 +173,7 @@ public class DatabaseInitializer {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  Procedimientos almacenados
+    //  Procedimientos almacenados de Fox Wallet
     // ─────────────────────────────────────────────────────────
 
     /**
@@ -174,7 +188,7 @@ public class DatabaseInitializer {
      *    y gastos de un usuario para el mes y año indicados, centralizando en la BD
      *    la agregación que de otro modo haría el cliente con Streams.
      */
-    private static void createStoredProcedures(Connection c) throws SQLException {
+    private static void crearProcedimientosAlmacenados(Connection c) throws SQLException {
         try (Statement st = c.createStatement()) {
 
             // ── Procedimiento 1: actualizar progreso de un objetivo ──────
@@ -212,10 +226,10 @@ public class DatabaseInitializer {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  Datos demo
+    //  Datos de demostración para el usuario de prueba
     // ─────────────────────────────────────────────────────────
 
-    private static void insertDemoData(Connection c) throws SQLException {
+    private static void insertarDatosDemo(Connection c) throws SQLException {
         insertCategorias(c);
         insertUsuarios(c);
         insertMovimientos(c);

@@ -14,6 +14,13 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
+/**
+ * Controlador del panel de ajustes de Fox Wallet.
+ * <p>
+ * Permite al usuario cambiar sus preferencias de idioma, moneda y comunidad
+ * autónoma, alternar entre tema claro y oscuro, y configurar qué tipos
+ * de notificaciones automáticas desea recibir.
+ */
 public class AjustesController implements Initializable {
 
     @FXML private ComboBox<String> cmbIdioma, cmbMoneda, cmbComunidad;
@@ -41,7 +48,7 @@ public class AjustesController implements Initializable {
         btnClaro.getStyleClass().add("theme-btn-active");
         btnOscuro.getStyleClass().removeAll("theme-btn","theme-btn-active");
         btnOscuro.getStyleClass().add("theme-btn");
-        dao.guardarTema(Session.getInstance().getUsuarioActual().getId(), "claro");
+        dao.guardarPreferenciaTema(Session.getInstance().getUsuarioActual().getId(), "claro");
     }
 
     @FXML void temaOscuro(MouseEvent e) {
@@ -49,7 +56,7 @@ public class AjustesController implements Initializable {
         btnOscuro.getStyleClass().add("theme-btn-active");
         btnClaro.getStyleClass().removeAll("theme-btn","theme-btn-active");
         btnClaro.getStyleClass().add("theme-btn");
-        dao.guardarTema(Session.getInstance().getUsuarioActual().getId(), "oscuro");
+        dao.guardarPreferenciaTema(Session.getInstance().getUsuarioActual().getId(), "oscuro");
     }
 
     @FXML void guardar() {
@@ -58,7 +65,7 @@ public class AjustesController implements Initializable {
         String moneda = cmbMoneda.getValue();
         u.setMoneda(moneda != null && moneda.startsWith("€") ? "€" : moneda != null && moneda.startsWith("$") ? "$" : "£");
         u.setComunidad(cmbComunidad.getValue());
-        dao.actualizarPerfil(u);
+        dao.actualizarPerfilUsuario(u);
         lblMsg.setText("✓ Ajustes guardados.");
     }
 }
