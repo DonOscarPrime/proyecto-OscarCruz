@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.finanzapp.controller.MainController"
@@ -12,7 +13,12 @@
     <!-- ── TOP NAV ── -->
     <top>
         <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="6">
-            <Label text="● FinanzApp" styleClass="logo"/>
+            <HBox alignment="CENTER_LEFT" spacing="7">
+                <ImageView fitWidth="28" fitHeight="28" preserveRatio="true">
+                    <image><Image url="@/com/finanzapp/images/logo.png"/></image>
+                </ImageView>
+                <Label text="Fox Wallet" styleClass="logo"/>
+            </HBox>
             <HBox spacing="4" HBox.hgrow="ALWAYS">
                 <Button fx:id="navDashboard"      text="Dashboard"      styleClass="nav-tab,nav-tab-active" onAction="#showDashboard"/>
                 <Button fx:id="navGastos"         text="Ingresos/Gastos" styleClass="nav-tab"              onAction="#showGastos"/>

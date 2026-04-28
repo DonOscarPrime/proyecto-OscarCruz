@@ -16,11 +16,30 @@ public class DatabaseInitializer {
         try {
             DatabaseMetaData meta = c.getMetaData();
             ResultSet rs = meta.getTables(null, null, "usuarios", null);
-            if (rs.next()) return; // ya inicializada
+            if (rs.next()) {
+                // Las tablas ya existen; asegurarse de que los procedimientos también
+                ensureStoredProcedures(c);
+                return;
+            }
             createSchema(c);
+            createStoredProcedures(c);
             insertDemoData(c);
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Crea los procedimientos almacenados si aún no existen.
+     * Se llama tanto en primera inicialización como en arranques posteriores
+     * para que usuarios con versiones anteriores de la BD también los obtengan.
+     */
+    public static void ensureStoredProcedures(Connection c) {
+        try {
+            createStoredProcedures(c);
+        } catch (SQLException e) {
+            // Si ya existen (error 1304) lo ignoramos silenciosamente
+            if (e.getErrorCode() != 1304) e.printStackTrace();
         }
     }
 
@@ -136,6 +155,59 @@ public class DatabaseInitializer {
                     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────
+    //  Procedimientos almacenados
+    // ─────────────────────────────────────────────────────────
+
+    /**
+     * Crea los dos procedimientos almacenados de Fox Wallet.
+     *
+     * 1. actualizarProgresoObjetivo — actualiza el importe ahorrado de un objetivo
+     *    y marca automáticamente 'completado = 1' en el mismo UPDATE si el nuevo
+     *    importe iguala o supera el objetivo. La lógica IF se evalúa en el servidor,
+     *    evitando la condición de carrera que produciría hacerlo en dos operaciones.
+     *
+     * 2. obtenerEstadisticasMes — devuelve en una sola llamada el total de ingresos
+     *    y gastos de un usuario para el mes y año indicados, centralizando en la BD
+     *    la agregación que de otro modo haría el cliente con Streams.
+     */
+    private static void createStoredProcedures(Connection c) throws SQLException {
+        try (Statement st = c.createStatement()) {
+
+            // ── Procedimiento 1: actualizar progreso de un objetivo ──────
+            st.execute(
+                "CREATE PROCEDURE IF NOT EXISTS actualizarProgresoObjetivo(" +
+                "    IN p_id           INT," +
+                "    IN p_nuevo_actual DECIMAL(10,2)" +
+                ") " +
+                "BEGIN " +
+                "    UPDATE objetivos " +
+                "    SET actual     = p_nuevo_actual, " +
+                "        completado = IF(p_nuevo_actual >= objetivo, 1, 0) " +
+                "    WHERE id = p_id; " +
+                "END"
+            );
+
+            // ── Procedimiento 2: estadísticas mensuales de un usuario ────
+            st.execute(
+                "CREATE PROCEDURE IF NOT EXISTS obtenerEstadisticasMes(" +
+                "    IN p_uid  INT," +
+                "    IN p_anio INT," +
+                "    IN p_mes  INT" +
+                ") " +
+                "BEGIN " +
+                "    SELECT " +
+                "        IFNULL(SUM(CASE WHEN tipo = 'ingreso' THEN cantidad ELSE 0 END), 0) AS total_ingresos, " +
+                "        IFNULL(SUM(CASE WHEN tipo = 'gasto'   THEN cantidad ELSE 0 END), 0) AS total_gastos " +
+                "    FROM movimientos " +
+                "    WHERE usuario_id = p_uid " +
+                "      AND YEAR(fecha)  = p_anio " +
+                "      AND MONTH(fecha) = p_mes; " +
+                "END"
+            );
         }
     }
 

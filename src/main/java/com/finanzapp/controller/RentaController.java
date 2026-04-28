@@ -188,7 +188,7 @@ public class RentaController implements Initializable {
                 fillRect(cs, 0, H - 68, 6, 68, 0.114f, 0.620f, 0.459f);
 
                 drawText(cs, bold,    17, 1f, 1f, 1f, M, H - 32,
-                        "FinanzApp - Informe de Declaracion de la Renta");
+                        "Fox Wallet - Informe de Declaracion de la Renta");
                 drawText(cs, regular,  9, 0.75f, 0.87f, 0.97f, M, H - 47,
                         "Estimacion orientativa del IRPF  |  Ejercicio " + LocalDate.now().getYear());
                 drawText(cs, regular,  9, 0.75f, 0.87f, 0.97f, M, H - 60,
@@ -342,7 +342,7 @@ public class RentaController implements Initializable {
                 cs.lineTo(W - M, 24);
                 cs.stroke();
                 drawText(cs, regular, 7.5f, 0.65f, 0.65f, 0.65f, M, 14,
-                        "FinanzApp - Informe generado el " + fecha + "  -  Pagina 1 / 1");
+                        "Fox Wallet - Informe generado el " + fecha + "  -  Pagina 1 / 1");
             }
 
             doc.save(file);

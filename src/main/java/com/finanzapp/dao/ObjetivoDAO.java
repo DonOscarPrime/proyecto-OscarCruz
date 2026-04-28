@@ -6,6 +6,7 @@ import com.finanzapp.util.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+// CallableStatement está incluido en java.sql.*
 
 public class ObjetivoDAO {
 
@@ -41,13 +42,23 @@ public class ObjetivoDAO {
         return false;
     }
 
+    /**
+     * Actualiza el importe ahorrado de un objetivo delegando la lógica en el
+     * procedimiento almacenado {@code actualizarProgresoObjetivo}.
+     * <p>
+     * El servidor MySQL evalúa en el mismo UPDATE si el nuevo valor alcanza el
+     * objetivo y actualiza {@code completado} de forma atómica, evitando la
+     * condición de carrera que produciría realizar la comprobación en el cliente
+     * en dos operaciones separadas.
+     */
     public boolean actualizarAporte(int id, double nuevoActual) {
-        String sql = "UPDATE objetivos SET actual=?, completado=IF(actual>=objetivo,1,0) WHERE id=?";
+        String sql = "{CALL actualizarProgresoObjetivo(?, ?)}";
         try (Connection c = DatabaseConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setDouble(1, nuevoActual);
-            ps.setInt(2, id);
-            return ps.executeUpdate() > 0;
+             CallableStatement cs = c.prepareCall(sql)) {
+            cs.setInt(1, id);
+            cs.setDouble(2, nuevoActual);
+            cs.execute();
+            return true;
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }

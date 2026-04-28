@@ -15,7 +15,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         primaryStage = stage;
-        stage.setTitle("FinanzApp");
+        stage.setTitle("Fox Wallet");
         stage.setMinWidth(1000);
         stage.setMinHeight(680);
         navigateTo("login");
