@@ -154,21 +154,6 @@ public class DatabaseInitializer {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """);
 
-            st.execute("""
-                CREATE TABLE simulaciones_prestamo (
-                    id              INT AUTO_INCREMENT PRIMARY KEY,
-                    usuario_id      INT NOT NULL,
-                    tipo_prestamo   VARCHAR(50),
-                    capital         DECIMAL(12,2),
-                    plazo_meses     INT,
-                    tin             DECIMAL(5,2),
-                    cuota_mensual   DECIMAL(10,2),
-                    total_pagar     DECIMAL(12,2),
-                    total_intereses DECIMAL(12,2),
-                    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-                """);
         }
     }
 
@@ -236,7 +221,6 @@ public class DatabaseInitializer {
         insertObjetivos(c);
         insertHabitos(c);
         insertNotificaciones(c);
-        insertSimulaciones(c);
     }
 
     private static void insertCategorias(Connection c) throws SQLException {
@@ -517,24 +501,6 @@ public class DatabaseInitializer {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  Simulaciones préstamo
-    // ─────────────────────────────────────────────────────────
-
-    private static void insertSimulaciones(Connection c) throws SQLException {
-        String sql = """
-            INSERT INTO simulaciones_prestamo
-                (usuario_id, tipo_prestamo, capital, plazo_meses, tin,
-                 cuota_mensual, total_pagar, total_intereses)
-            VALUES (?,?,?,?,?,?,?,?)
-            """;
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
-            sim(ps,1,"Personal",  10000.00, 36, 6.50,  307.07,  11054.52,  1054.52);
-            sim(ps,1,"Coche",     15000.00, 60, 5.50,  286.86,  17211.60,  2211.60);
-            sim(ps,1,"Hipoteca", 150000.00,300, 3.00,  711.74, 213522.00, 63522.00);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────
     //  Helpers
     // ─────────────────────────────────────────────────────────
 
@@ -586,20 +552,6 @@ public class DatabaseInitializer {
         ps.setString(3, mensaje);
         ps.setString(4, tipo);
         ps.setInt(5, leida);
-        ps.executeUpdate();
-    }
-
-    private static void sim(PreparedStatement ps, int uid, String tipoPrestamo,
-                             double capital, int plazo, double tin,
-                             double cuota, double total, double intereses) throws SQLException {
-        ps.setInt(1, uid);
-        ps.setString(2, tipoPrestamo);
-        ps.setDouble(3, capital);
-        ps.setInt(4, plazo);
-        ps.setDouble(5, tin);
-        ps.setDouble(6, cuota);
-        ps.setDouble(7, total);
-        ps.setDouble(8, intereses);
         ps.executeUpdate();
     }
 

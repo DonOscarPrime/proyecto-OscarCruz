@@ -28,7 +28,7 @@ public class MainController implements Initializable {
 
     @FXML private BorderPane rootPane;
     @FXML private StackPane  contentArea;
-    @FXML private Button navDashboard, navGastos, navSimulador, navPrestamos,
+    @FXML private Button navDashboard, navGastos, navSimulador,
                          navObjetivos, navHistorial, navRenta, notifBtn, avatarBtn, themeBtn;
     @FXML private Label  notifBadge;
 
@@ -55,8 +55,7 @@ public class MainController implements Initializable {
     @FXML public void showDashboard()       { cargarPanelFxml("dashboard");       marcarNavegacionActiva(navDashboard); }
     @FXML public void showGastos()          { cargarPanelFxml("gastos");          marcarNavegacionActiva(navGastos); }
     @FXML public void showSimulador()       { cargarPanelFxml("simulador");       marcarNavegacionActiva(navSimulador); }
-    @FXML public void showPrestamos()       { cargarPanelFxml("prestamos");       marcarNavegacionActiva(navPrestamos); }
-    @FXML public void showObjetivos()       { cargarPanelFxml("objetivos");       marcarNavegacionActiva(navObjetivos); }
+@FXML public void showObjetivos()       { cargarPanelFxml("objetivos");       marcarNavegacionActiva(navObjetivos); }
     @FXML public void showHistorial()       { cargarPanelFxml("historial");       marcarNavegacionActiva(navHistorial); }
     @FXML public void showRenta()           { cargarPanelFxml("renta");           marcarNavegacionActiva(navRenta); }
     @FXML public void showNotificaciones()  { cargarPanelFxml("notificaciones");  marcarNavegacionActiva(notifBtn);
@@ -89,7 +88,7 @@ public class MainController implements Initializable {
 
     /** Marca el botón de navegación activo y desactiva el anterior. */
     private void marcarNavegacionActiva(Button botonActivo) {
-        for (Button b : new Button[]{navDashboard, navGastos, navSimulador, navPrestamos,
+        for (Button b : new Button[]{navDashboard, navGastos, navSimulador,
                                       navObjetivos, navHistorial, navRenta, notifBtn, avatarBtn}) {
             if (b != null) b.getStyleClass().remove("nav-tab-active");
         }

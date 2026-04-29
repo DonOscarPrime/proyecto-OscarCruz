@@ -104,7 +104,7 @@
 
                 <Label text="Ingresos netos mensuales (€)" styleClass="form-label"/>
                 <TextField fx:id="txtIngresos" styleClass="form-input"/>
-                <Label text="Usado en el simulador de préstamos y en los consejos personalizados."
+                <Label text="Usado para calcular estadísticas y consejos personalizados."
                        styleClass="hint-label" wrapText="true"/>
 
                 <Label text="Objetivo financiero principal" styleClass="form-label"/>

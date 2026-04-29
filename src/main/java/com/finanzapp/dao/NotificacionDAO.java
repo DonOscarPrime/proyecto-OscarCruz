@@ -11,8 +11,8 @@ import java.util.List;
  * Acceso a datos de la tabla {@code notificaciones} de Fox Wallet.
  * <p>
  * Fox Wallet genera notificaciones automáticas cuando el usuario supera
- * su presupuesto mensual, alcanza un objetivo de ahorro o recibe un
- * aviso de vencimiento de préstamo. Este DAO gestiona su lectura y estado.
+ * su presupuesto mensual, alcanza un objetivo de ahorro o registra
+ * un movimiento inusual. Este DAO gestiona su lectura y estado.
  */
 public class NotificacionDAO {
 

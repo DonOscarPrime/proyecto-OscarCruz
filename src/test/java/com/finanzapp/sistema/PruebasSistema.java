@@ -40,7 +40,7 @@ public class PruebasSistema {
     @Test @Order(3)
     @DisplayName("SIS-03: Las tablas principales existen en la BD")
     void testTablasExisten() {
-        String[] tablas = {"usuarios", "movimientos", "objetivos", "simulaciones_prestamo"};
+        String[] tablas = {"usuarios", "movimientos", "objetivos", "categorias", "habitos", "notificaciones"};
         try (Connection c = DatabaseConnection.getConnection()) {
             for (String tabla : tablas) {
                 assertTrue(c.getMetaData().getTables(null, null, tabla, null).next(),

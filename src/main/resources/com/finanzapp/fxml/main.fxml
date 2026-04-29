@@ -23,8 +23,7 @@
                 <Button fx:id="navDashboard"      text="Dashboard"      styleClass="nav-tab,nav-tab-active" onAction="#showDashboard"/>
                 <Button fx:id="navGastos"         text="Ingresos/Gastos" styleClass="nav-tab"              onAction="#showGastos"/>
                 <Button fx:id="navSimulador"      text="Simulador"      styleClass="nav-tab"               onAction="#showSimulador"/>
-                <Button fx:id="navPrestamos"      text="Préstamos"      styleClass="nav-tab"               onAction="#showPrestamos"/>
-                <Button fx:id="navObjetivos"      text="Objetivos"      styleClass="nav-tab"               onAction="#showObjetivos"/>
+<Button fx:id="navObjetivos"      text="Objetivos"      styleClass="nav-tab"               onAction="#showObjetivos"/>
                 <Button fx:id="navHistorial"      text="Historial"      styleClass="nav-tab"               onAction="#showHistorial"/>
                 <Button fx:id="navRenta"          text="Renta"          styleClass="nav-tab"               onAction="#showRenta"/>
             </HBox>
