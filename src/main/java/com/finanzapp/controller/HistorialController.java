@@ -17,6 +17,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador del historial completo de transacciones de Fox Wallet.
+ * <p>
+ * Permite al usuario filtrar sus movimientos por mes, año y tipo
+ * (todos, gastos, ingresos), y buscar por texto libre. Muestra
+ * estadísticas acumuladas del periodo seleccionado.
+ */
 public class HistorialController implements Initializable {
 
     @FXML private ComboBox<String>  cmbMes, cmbTipo;
@@ -50,29 +57,31 @@ public class HistorialController implements Initializable {
         cmbTipo.setItems(FXCollections.observableArrayList("Todos","Gastos","Ingresos"));
         cmbTipo.setValue("Todos");
 
-        cmbMes.setOnAction(e -> cargar());
-        cmbAnio.setOnAction(e -> cargar());
-        cmbTipo.setOnAction(e -> aplicarFiltro());
-        txtBuscar.textProperty().addListener((obs, o, n) -> aplicarFiltro());
+        cmbMes.setOnAction(e -> cargarMovimientosPeriodoSeleccionado());
+        cmbAnio.setOnAction(e -> cargarMovimientosPeriodoSeleccionado());
+        cmbTipo.setOnAction(e -> filtrarMovimientosVisibles());
+        txtBuscar.textProperty().addListener((obs, o, n) -> filtrarMovimientosVisibles());
 
-        cargar();
+        cargarMovimientosPeriodoSeleccionado();
     }
 
-    private void cargar() {
+    /** Carga los movimientos del periodo seleccionado (mes/año) desde la base de datos. */
+    private void cargarMovimientosPeriodoSeleccionado() {
         int uid  = Session.getInstance().getUsuarioActual().getId();
         int anio = cmbAnio.getValue();
         String mes = cmbMes.getValue();
 
         if ("Todos".equals(mes)) {
-            todos = dao.listarPorUsuario(uid);
+            todos = dao.obtenerMovimientosDeUsuario(uid);
         } else {
             int mesIdx = Arrays.asList(MESES).indexOf(mes) + 1;
-            todos = dao.listarPorMes(uid, anio, mesIdx);
+            todos = dao.obtenerMovimientosPorMes(uid, anio, mesIdx);
         }
-        aplicarFiltro();
+        filtrarMovimientosVisibles();
     }
 
-    private void aplicarFiltro() {
+    /** Filtra la lista visible por tipo (gastos/ingresos) y texto de búsqueda. */
+    private void filtrarMovimientosVisibles() {
         String tipo   = cmbTipo.getValue();
         String buscar = txtBuscar.getText().toLowerCase();
 

@@ -8,6 +8,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
+/**
+ * Controlador de la pantalla de login y registro de Fox Wallet.
+ * <p>
+ * Gestiona la autenticación de usuarios existentes mediante email + BCrypt,
+ * el registro de nuevas cuentas con validación de campos, y el control
+ * de intentos fallidos de login para proteger contra ataques de fuerza bruta.
+ */
 public class LoginController {
 
     @FXML private Button tabLoginBtn, tabRegBtn;
@@ -48,7 +55,7 @@ public class LoginController {
             loginError.setText("Por favor rellena todos los campos.");
             return;
         }
-        Usuario u = dao.login(email, pass);
+        Usuario u = dao.autenticarUsuario(email, pass);
         if (u == null) {
             loginError.setText("Email o contraseña incorrectos.");
             return;
@@ -82,7 +89,7 @@ public class LoginController {
         u.setComunidad("Madrid");
 
         try {
-            boolean ok = dao.registrar(u, pass);
+            boolean ok = dao.registrarNuevoUsuario(u, pass);
             if (!ok) {
                 regError.setText("Error al crear la cuenta. Inténtalo de nuevo.");
                 return;

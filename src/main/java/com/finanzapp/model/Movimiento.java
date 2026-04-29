@@ -2,6 +2,12 @@ package com.finanzapp.model;
 
 import java.time.LocalDate;
 
+/**
+ * Representa una transacción económica registrada por el usuario en Fox Wallet.
+ * Puede ser un <b>gasto</b> (supermercado, alquiler, ocio…) o un <b>ingreso</b>
+ * (nómina, freelance, venta…). Incluye la categoría asociada para mostrar
+ * el emoji y el nombre en las listas del historial y del panel de movimientos.
+ */
 public class Movimiento {
     private int id;
     private int usuarioId;
@@ -36,13 +42,25 @@ public class Movimiento {
     public LocalDate getFecha()           { return fecha; }
     public void   setFecha(LocalDate f)   { this.fecha = f; }
 
+    /** Devuelve {@code true} si el movimiento es un ingreso (nómina, freelance…). */
     public boolean isIngreso() { return "ingreso".equals(tipo); }
 
-    /** Cantidad con signo: positiva para ingresos, negativa para gastos. */
+    /**
+     * Devuelve la cantidad con signo contable:
+     * <ul>
+     *   <li>Positiva para ingresos (suma al saldo)</li>
+     *   <li>Negativa para gastos (resta al saldo)</li>
+     * </ul>
+     * Se usa en el cálculo del balance mensual del dashboard.
+     */
     public double getCantidadConSigno() {
         return isIngreso() ? cantidad : -cantidad;
     }
 
+    /**
+     * Devuelve el emoji y nombre de la categoría formateados para mostrar
+     * en listas del historial (p. ej. "🛒 Supermercado").
+     */
     public String getCategoriaDisplay() {
         String emoji = categoriaEmoji != null ? categoriaEmoji : "";
         String cat   = categoriaNombre != null ? categoriaNombre : "";

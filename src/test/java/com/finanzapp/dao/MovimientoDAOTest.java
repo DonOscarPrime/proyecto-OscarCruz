@@ -13,7 +13,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * PRUEBAS DAO — MovimientoDAO: insertar, listar y eliminar.
+ * Pruebas de integración de {@link MovimientoDAO} de Fox Wallet.
+ * <p>
+ * Verifica contra la base de datos real que el DAO puede registrar un nuevo
+ * movimiento (gasto), recuperarlo filtrando por mes y eliminarlo correctamente.
+ * Requiere conexión activa a MySQL; si no está disponible se saltan con {@code assumeTrue}.
  */
 @DisplayName("MovimientoDAO — pruebas de integración")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -33,7 +37,7 @@ public class MovimientoDAOTest {
         if (dbOk) {
             Usuario u = new Usuario();
             u.setNombre("JUnit Mov"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-            if (uDao.registrar(u, "TestPass1234!")) uid = u.getId();
+            if (uDao.registrarNuevoUsuario(u, "TestPass1234!")) uid = u.getId();
         }
     }
 
@@ -46,23 +50,23 @@ public class MovimientoDAOTest {
     }
 
     @Test @Order(1)
-    @DisplayName("DAO-M01: insertar() con datos válidos devuelve true y asigna ID")
+    @DisplayName("DAO-M01: registrarMovimiento() con datos válidos devuelve true y asigna ID")
     void testInsertar() {
         assumeTrue(dbOk && uid > 0);
         Movimiento m = new Movimiento();
         m.setUsuarioId(uid); m.setTipo("gasto"); m.setNombre("Compra test");
         m.setCantidad(49.99); m.setCategoriaId(2); m.setFecha(LocalDate.now());
-        assertTrue(movDAO.insertar(m));
+        assertTrue(movDAO.registrarMovimiento(m));
         assertTrue(m.getId() > 0);
         movId = m.getId();
     }
 
     @Test @Order(2)
-    @DisplayName("DAO-M02: listarPorMes() devuelve los movimientos del mes actual")
+    @DisplayName("DAO-M02: obtenerMovimientosPorMes() devuelve los movimientos del mes actual")
     void testListar() {
         assumeTrue(dbOk && uid > 0);
         LocalDate hoy = LocalDate.now();
-        List<Movimiento> lista = movDAO.listarPorMes(uid, hoy.getYear(), hoy.getMonthValue());
+        List<Movimiento> lista = movDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue());
         assertFalse(lista.isEmpty());
         lista.forEach(m -> assertEquals(hoy.getMonthValue(), m.getFecha().getMonthValue()));
     }
@@ -71,6 +75,6 @@ public class MovimientoDAOTest {
     @DisplayName("DAO-M03: eliminar() con ID válido devuelve true")
     void testEliminar() {
         assumeTrue(dbOk && movId > 0);
-        assertTrue(movDAO.eliminar(movId));
+        assertTrue(movDAO.eliminarMovimiento(movId));
     }
 }
