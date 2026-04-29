@@ -1,5 +1,13 @@
 package com.finanzapp.model;
 
+/**
+ * Representa un hábito de gasto recurrente del usuario en Fox Wallet.
+ * <p>
+ * Un hábito es cualquier consumo periódico (café diario, gimnasio, Netflix…)
+ * que el simulador de ahorro usa para calcular cuánto podría ahorrar
+ * el usuario si redujera su frecuencia de consumo hacia la frecuencia objetivo.
+ * El factor 4,3 convierte frecuencias semanales a mensuales.
+ */
 public class Habito {
     private int id;
     private int usuarioId;
@@ -30,20 +38,42 @@ public class Habito {
     public String getDescripcion()         { return descripcion; }
     public void   setDescripcion(String d) { this.descripcion = d; }
 
-    /** Gasto mensual actual según frecuencia. */
+    /**
+     * Calcula el gasto mensual real del usuario para este hábito,
+     * según su frecuencia de consumo actual.
+     * Las frecuencias semanales se convierten a mensuales multiplicando por 4,3.
+     */
     public double getGastoMensualActual() {
-        double factor = "semana".equals(unidad) ? 4.3 : 1.0;
-        return frecuenciaActual * coste * factor;
+        double factorSemanalAMensual = "semana".equals(unidad) ? 4.3 : 1.0;
+        return frecuenciaActual * coste * factorSemanalAMensual;
     }
 
-    /** Gasto mensual objetivo. */
-    public double getGastoMensualObj() {
-        double factor = "semana".equals(unidad) ? 4.3 : 1.0;
-        return frecuenciaObj * coste * factor;
+    /**
+     * Calcula el gasto mensual que tendría el usuario si alcanzara
+     * la frecuencia objetivo marcada en el simulador de ahorro.
+     */
+    public double getGastoMensualObjetivo() {
+        double factorSemanalAMensual = "semana".equals(unidad) ? 4.3 : 1.0;
+        return frecuenciaObj * coste * factorSemanalAMensual;
     }
 
-    /** Ahorro mensual posible. */
-    public double getAhorroMensual() {
-        return Math.max(0, getGastoMensualActual() - getGastoMensualObj());
+    /**
+     * Calcula el ahorro mensual potencial si el usuario reduce este hábito
+     * hasta la frecuencia objetivo. Nunca devuelve valores negativos.
+     */
+    public double getAhorroMensualPotencial() {
+        return Math.max(0, getGastoMensualActual() - getGastoMensualObjetivo());
     }
+
+    /**
+     * @deprecated Usar {@link #getGastoMensualObjetivo()} para mayor claridad.
+     */
+    @Deprecated
+    public double getGastoMensualObj() { return getGastoMensualObjetivo(); }
+
+    /**
+     * @deprecated Usar {@link #getAhorroMensualPotencial()} para mayor claridad.
+     */
+    @Deprecated
+    public double getAhorroMensual() { return getAhorroMensualPotencial(); }
 }

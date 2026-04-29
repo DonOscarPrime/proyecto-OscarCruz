@@ -21,6 +21,13 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador del panel de movimientos de Fox Wallet.
+ * <p>
+ * Permite al usuario registrar nuevos gastos e ingresos, filtrarlos por tipo
+ * y categoría, buscar por texto y eliminarlos. Muestra las estadísticas del
+ * periodo actual: total de ingresos, gastos, balance y tasa de ahorro.
+ */
 public class GastosController implements Initializable {
 
     @FXML private Label statIngresos, statGastos, statBalance, subBalance, statTasa;
@@ -39,31 +46,33 @@ public class GastosController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         cmbTipo.setItems(FXCollections.observableArrayList("Gasto", "Ingreso"));
         cmbTipo.setValue("Gasto");
-        cmbTipo.setOnAction(e -> actualizarCategorias());
+        cmbTipo.setOnAction(e -> actualizarCategoriasPorTipoMovimiento());
 
         cmbFiltroTipo.setItems(FXCollections.observableArrayList("Todos", "Gastos", "Ingresos"));
         cmbFiltroTipo.setValue("Todos");
-        cmbFiltroTipo.setOnAction(e -> aplicarFiltro());
+        cmbFiltroTipo.setOnAction(e -> filtrarMovimientosPorTipoYBusqueda());
 
-        txtBuscar.textProperty().addListener((obs, o, n) -> aplicarFiltro());
+        txtBuscar.textProperty().addListener((obs, o, n) -> filtrarMovimientosPorTipoYBusqueda());
 
         dateFecha.setValue(LocalDate.now());
-        actualizarCategorias();
-        cargarMovimientos();
+        actualizarCategoriasPorTipoMovimiento();
+        cargarMovimientosDeUsuario();
     }
 
-    private void actualizarCategorias() {
+    /** Actualiza el ComboBox de categorías según el tipo de movimiento seleccionado. */
+    private void actualizarCategoriasPorTipoMovimiento() {
         String tipo = "Ingreso".equals(cmbTipo.getValue()) ? "ingreso" : "gasto";
-        List<Categoria> cats = catDAO.listarPorTipo(tipo);
+        List<Categoria> cats = catDAO.obtenerCategoriasPorTipo(tipo);
         cmbCategoria.setItems(FXCollections.observableArrayList(cats));
         if (!cats.isEmpty()) cmbCategoria.setValue(cats.get(0));
     }
 
-    private void cargarMovimientos() {
+    /** Carga todos los movimientos del usuario y actualiza las estadísticas del panel. */
+    private void cargarMovimientosDeUsuario() {
         int uid = Session.getInstance().getUsuarioActual().getId();
-        todos = movDAO.listarPorUsuario(uid);
+        todos = movDAO.obtenerMovimientosDeUsuario(uid);
         actualizarStats();
-        aplicarFiltro();
+        filtrarMovimientosPorTipoYBusqueda();
     }
 
     private void actualizarStats() {
@@ -83,7 +92,8 @@ public class GastosController implements Initializable {
         statTasa.getStyleClass().add(tasa >= 20 ? "stat-up" : tasa >= 0 ? "stat-amber" : "stat-down");
     }
 
-    private void aplicarFiltro() {
+    /** Filtra la lista de movimientos visibles según tipo seleccionado y texto de búsqueda. */
+    private void filtrarMovimientosPorTipoYBusqueda() {
         String filtro  = cmbFiltroTipo.getValue();
         String buscar  = txtBuscar.getText().toLowerCase();
         List<Movimiento> filtrados = todos.stream()
@@ -126,8 +136,8 @@ public class GastosController implements Initializable {
             Button del = new Button("✕");
             del.setStyle("-fx-background-color:transparent;-fx-text-fill:#D85A30;-fx-cursor:hand;-fx-font-size:11px;");
             del.setOnAction(e -> {
-                movDAO.eliminar(m.getId());
-                cargarMovimientos();
+                movDAO.eliminarMovimiento(m.getId());
+                cargarMovimientosDeUsuario();
             });
 
             row.getChildren().addAll(icon, info, fecha, amt, del);
@@ -161,11 +171,11 @@ public class GastosController implements Initializable {
         m.setFecha(dateFecha.getValue() != null ? dateFecha.getValue() : LocalDate.now());
         if (cmbCategoria.getValue() != null) m.setCategoriaId(cmbCategoria.getValue().getId());
 
-        if (movDAO.insertar(m)) {
+        if (movDAO.registrarMovimiento(m)) {
             lblMsg.setText("✓ Movimiento guardado correctamente.");
             txtCantidad.clear(); txtNombre.clear(); txtNotas.clear();
             dateFecha.setValue(LocalDate.now());
-            cargarMovimientos();
+            cargarMovimientosDeUsuario();
         } else {
             lblError.setText("Error al guardar. Inténtalo de nuevo.");
         }
