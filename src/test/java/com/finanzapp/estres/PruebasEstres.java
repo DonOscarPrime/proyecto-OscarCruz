@@ -61,7 +61,7 @@ public class PruebasEstres {
             m.setUsuarioId(uid); m.setTipo(i % 2 == 0 ? "ingreso" : "gasto");
             m.setNombre("Mov #" + i); m.setCantidad(10.0 + (i % 100));
             m.setCategoriaId((i % 10) + 1); m.setFecha(LocalDate.now().minusDays(i % 30));
-            movimientoDAO.insertar(m);
+            movimientoDAO.registrarMovimiento(m);
         }
         long ms = System.currentTimeMillis() - inicio;
         System.out.printf("  500 inserciones en %d ms%n", ms);
@@ -74,7 +74,7 @@ public class PruebasEstres {
         assumeTrue(dbOk && uid > 0);
         LocalDate hoy = LocalDate.now();
         long inicio = System.currentTimeMillis();
-        var lista = movimientoDAO.listarPorMes(uid, hoy.getYear(), hoy.getMonthValue());
+        var lista = movimientoDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue());
         long ms = System.currentTimeMillis() - inicio;
         System.out.printf("  %d registros en %d ms%n", lista.size(), ms);
         assertFalse(lista.isEmpty());

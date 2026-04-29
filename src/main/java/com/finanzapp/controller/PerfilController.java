@@ -17,6 +17,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Controlador del panel de perfil del usuario en Fox Wallet.
+ * <p>
+ * Muestra y permite editar los datos personales del usuario, cambiar
+ * la contraseña de forma segura (verificando la actual con BCrypt),
+ * y actualizar la información financiera (ingresos, presupuesto, objetivo).
+ */
 public class PerfilController implements Initializable {
 
     // Header
@@ -60,10 +67,11 @@ public class PerfilController implements Initializable {
         eComunidad.setItems(FXCollections.observableArrayList(COMUNIDADES));
         cmbSituacion.setItems(FXCollections.observableArrayList(SITUACIONES));
         cmbObjetivo.setItems(FXCollections.observableArrayList(OBJETIVOS));
-        cargar();
+        cargarDatosPerfilUsuario();
     }
 
-    private void cargar() {
+    /** Carga y muestra todos los datos del usuario autenticado en el panel de perfil. */
+    private void cargarDatosPerfilUsuario() {
         Usuario u = Session.getInstance().getUsuarioActual();
 
         // Header
@@ -74,8 +82,8 @@ public class PerfilController implements Initializable {
         lblComunidad.setText(u.getComunidad() != null ? u.getComunidad() : "—");
 
         // Stats
-        long movCount = movDAO.listarPorUsuario(u.getId()).size();
-        long objCount = objDAO.listarPorUsuario(u.getId()).stream().filter(o -> !o.isCompletado()).count();
+        long movCount = movDAO.obtenerMovimientosDeUsuario(u.getId()).size();
+        long objCount = objDAO.obtenerObjetivosDeUsuario(u.getId()).stream().filter(o -> !o.isCompletado()).count();
         statMovs.setText(String.valueOf(movCount));
         statObjs.setText(String.valueOf(objCount));
 
@@ -124,9 +132,9 @@ public class PerfilController implements Initializable {
         u.setFechaNacimiento(eFechaNac.getValue());
         u.setComunidad(eComunidad.getValue());
 
-        if (usuDAO.actualizarPerfil(u)) {
+        if (usuDAO.actualizarPerfilUsuario(u)) {
             lblPerfilMsg.setText("✓ Datos guardados correctamente.");
-            cargar();
+            cargarDatosPerfilUsuario();
             toggleEditar();
         } else {
             lblPerfilErr.setText("Error al guardar. ¿El email ya está en uso?");
@@ -152,7 +160,7 @@ public class PerfilController implements Initializable {
             return;
         }
         int uid = Session.getInstance().getUsuarioActual().getId();
-        if (usuDAO.cambiarPassword(uid, actual, nueva)) {
+        if (usuDAO.cambiarContrasena(uid, actual, nueva)) {
             lblPassMsg.setText("✓ Contraseña cambiada correctamente.");
             passActual.clear(); passNueva.clear(); passConfirm.clear();
         } else {
@@ -168,7 +176,7 @@ public class PerfilController implements Initializable {
         try { u.setIngresosNetos(Double.parseDouble(txtIngresos.getText().replace(",","."))); } catch (Exception ignored) {}
         try { u.setPresupuestoMensual(Double.parseDouble(txtPresupuesto.getText().replace(",","."))); } catch (Exception ignored) {}
 
-        if (usuDAO.actualizarPerfil(u)) {
+        if (usuDAO.actualizarPerfilUsuario(u)) {
             lblFinMsg.setText("✓ Situación financiera guardada.");
         }
     }

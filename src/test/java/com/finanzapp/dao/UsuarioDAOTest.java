@@ -10,7 +10,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * PRUEBAS DAO — UsuarioDAO: registro, login y email duplicado.
+ * Pruebas de integración de {@link UsuarioDAO} de Fox Wallet.
+ * <p>
+ * Verifica contra la base de datos real el ciclo de vida completo de la cuenta:
+ * registro de nueva cuenta con hash BCrypt, autenticación correcta e incorrecta,
+ * y rechazo de email duplicado con la excepción esperada.
+ * Requiere conexión activa a MySQL; si no está disponible se saltan con {@code assumeTrue}.
  */
 @DisplayName("UsuarioDAO — pruebas de integración")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -36,32 +41,32 @@ public class UsuarioDAOTest {
     }
 
     @Test @Order(1)
-    @DisplayName("DAO-U01: registrar() con email nuevo devuelve true y asigna ID")
+    @DisplayName("DAO-U01: registrarNuevoUsuario() con email nuevo devuelve true y asigna ID")
     void testRegistrar() {
         assumeTrue(dbOk, "MySQL no disponible");
         Usuario u = new Usuario();
         u.setNombre("JUnit User"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-        assertTrue(dao.registrar(u, "TestPass1234!"));
+        assertTrue(dao.registrarNuevoUsuario(u, "TestPass1234!"));
         assertTrue(u.getId() > 0);
         uid = u.getId();
     }
 
     @Test @Order(2)
-    @DisplayName("DAO-U02: login() correcto devuelve usuario; incorrecto devuelve null")
+    @DisplayName("DAO-U02: autenticarUsuario() correcto devuelve usuario; incorrecto devuelve null")
     void testLogin() {
         assumeTrue(dbOk && uid > 0);
-        assertNotNull(dao.login(EMAIL, "TestPass1234!"));
-        assertNull(dao.login(EMAIL, "mal"));
+        assertNotNull(dao.autenticarUsuario(EMAIL, "TestPass1234!"));
+        assertNull(dao.autenticarUsuario(EMAIL, "mal"));
     }
 
     @Test @Order(3)
-    @DisplayName("DAO-U03: registrar() con email duplicado lanza RuntimeException")
+    @DisplayName("DAO-U03: registrarNuevoUsuario() con email duplicado lanza RuntimeException")
     void testEmailDuplicado() {
         assumeTrue(dbOk && uid > 0);
         Usuario dup = new Usuario();
         dup.setNombre("Dup"); dup.setEmail(EMAIL); dup.setComunidad("Madrid");
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> dao.registrar(dup, "otraPass!"));
+            () -> dao.registrarNuevoUsuario(dup, "otraPass!"));
         assertEquals("EMAIL_DUPLICADO", ex.getMessage());
     }
 }

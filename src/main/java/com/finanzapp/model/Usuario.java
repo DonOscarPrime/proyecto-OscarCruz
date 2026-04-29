@@ -2,21 +2,29 @@ package com.finanzapp.model;
 
 import java.time.LocalDate;
 
+/**
+ * Representa la cuenta y el perfil financiero de un usuario de Fox Wallet.
+ * <p>
+ * Almacena tanto los datos personales (nombre, email, teléfono, comunidad autónoma)
+ * como la información financiera que personaliza la experiencia de la app:
+ * situación laboral, ingresos netos mensuales, presupuesto máximo y objetivo financiero.
+ * La contraseña se almacena siempre como hash BCrypt, nunca en texto plano.
+ */
 public class Usuario {
     private int id;
     private String nombre;
     private String email;
-    private String passwordHash;
+    private String passwordHash;      // hash BCrypt, nunca texto plano
     private String telefono;
     private LocalDate fechaNacimiento;
-    private String comunidad;
-    private String situacionLaboral;
-    private double ingresosNetos;
+    private String comunidad;         // comunidad autónoma española
+    private String situacionLaboral;  // Estudiante, Empleado, Autónomo…
+    private double ingresosNetos;     // ingresos netos mensuales en euros
     private String objetivoFinanciero;
     private double presupuestoMensual;
-    private String tema;
-    private String moneda;
-    private String idioma;
+    private String tema;              // "claro" | "oscuro"
+    private String moneda;            // símbolo: "€", "$", "£"
+    private String idioma;            // "Español" | "English"
 
     // ── Getters & Setters ───────────────────────────────────
     public int    getId()                    { return id; }
@@ -48,11 +56,17 @@ public class Usuario {
     public String getIdioma()               { return idioma; }
     public void   setIdioma(String i)       { this.idioma = i; }
 
-    /** Devuelve las iniciales del nombre (máx. 2 caracteres). */
+    /**
+     * Genera las iniciales del nombre completo del usuario para mostrarlas
+     * en el botón de avatar de la barra de navegación (máx. 2 caracteres).
+     * <p>
+     * Ejemplos: "Oswaldo Cruz" → "OC", "María" → "MA", "" → "??"
+     */
     public String getIniciales() {
         if (nombre == null || nombre.isBlank()) return "??";
-        String[] parts = nombre.trim().split("\\s+");
-        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
-        return (String.valueOf(parts[0].charAt(0)) + parts[1].charAt(0)).toUpperCase();
+        String[] partes = nombre.trim().split("\\s+");
+        if (partes.length == 1)
+            return partes[0].substring(0, Math.min(2, partes[0].length())).toUpperCase();
+        return (String.valueOf(partes[0].charAt(0)) + partes[1].charAt(0)).toUpperCase();
     }
 }

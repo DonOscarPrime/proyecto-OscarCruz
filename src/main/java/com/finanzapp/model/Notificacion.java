@@ -2,12 +2,21 @@ package com.finanzapp.model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Representa un aviso del sistema generado automáticamente por Fox Wallet.
+ * <p>
+ * Fox Wallet crea notificaciones en situaciones como:
+ * superar el presupuesto mensual, alcanzar un objetivo de ahorro o
+ * detectar un patrón de gasto inusual. El campo {@code tipo} controla
+ * el color del indicador visual: {@code info} (azul), {@code success} (verde),
+ * {@code warning} (naranja) o {@code danger} (rojo).
+ */
 public class Notificacion {
     private int id;
     private int usuarioId;
     private String titulo;
     private String mensaje;
-    private String tipo;   // info | success | warning | danger
+    private String tipo;          // "info" | "success" | "warning" | "danger"
     private boolean leida;
     private LocalDateTime createdAt;
 

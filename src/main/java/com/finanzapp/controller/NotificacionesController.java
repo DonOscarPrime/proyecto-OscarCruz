@@ -16,6 +16,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Controlador del panel de notificaciones de Fox Wallet.
+ * <p>
+ * Muestra los avisos automáticos generados por la app (superación de presupuesto,
+ * objetivos alcanzados, etc.) con indicador visual de leído/no leído.
+ * Al abrir el panel, todas las notificaciones se marcan como leídas.
+ */
 public class NotificacionesController implements Initializable {
 
     @FXML private VBox notifList;
@@ -23,11 +30,12 @@ public class NotificacionesController implements Initializable {
     private final NotificacionDAO dao = new NotificacionDAO();
 
     @Override
-    public void initialize(URL url, ResourceBundle rb) { cargar(); }
+    public void initialize(URL url, ResourceBundle rb) { cargarNotificacionesDelUsuario(); }
 
-    private void cargar() {
+    /** Carga y renderiza las notificaciones del usuario en el panel. */
+    private void cargarNotificacionesDelUsuario() {
         int uid = Session.getInstance().getUsuarioActual().getId();
-        List<Notificacion> notifs = dao.listarPorUsuario(uid);
+        List<Notificacion> notifs = dao.obtenerNotificacionesDeUsuario(uid);
         notifList.getChildren().clear();
 
         if (notifs.isEmpty()) {
@@ -82,8 +90,8 @@ public class NotificacionesController implements Initializable {
 
     @FXML void marcarLeidas() {
         int uid = Session.getInstance().getUsuarioActual().getId();
-        dao.marcarTodasLeidas(uid);
-        cargar();
+        dao.marcarTodasLasNotificacionesComoLeidas(uid);
+        cargarNotificacionesDelUsuario();
     }
 
     private String tipoColor(String tipo) {

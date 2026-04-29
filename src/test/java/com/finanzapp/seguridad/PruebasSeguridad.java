@@ -13,7 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * PRUEBAS DE SEGURIDAD — Contraseñas, bloqueo de login e inyección SQL.
+ * PRUEBAS DE SEGURIDAD de Fox Wallet — Contraseñas, bloqueo de acceso e inyección SQL.
+ * <p>
+ * Verifica que las contraseñas se almacenan con BCrypt (nunca en texto plano),
+ * que el mecanismo de bloqueo por intentos fallidos ({@link com.finanzapp.util.LoginAttemptService})
+ * actúa correctamente tras 5 intentos incorrectos, y que el sistema es resistente
+ * a ataques de inyección SQL en los campos de login.
  */
 @DisplayName("Pruebas de Seguridad")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -34,7 +39,7 @@ public class PruebasSeguridad {
             usuarioDAO = new UsuarioDAO();
             Usuario u = new Usuario();
             u.setNombre("Usuario Seg"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-            usuarioDAO.registrar(u, PASSWORD);
+            usuarioDAO.registrarNuevoUsuario(u, PASSWORD);
             uid = u.getId();
         }
         LoginAttemptService.reset();
@@ -54,7 +59,7 @@ public class PruebasSeguridad {
     @DisplayName("SEG-01: La contraseña se guarda como hash BCrypt, nunca en texto plano")
     void testPasswordHasheada() {
         assumeTrue(dbOk && uid > 0);
-        Usuario u = usuarioDAO.login(EMAIL, PASSWORD);
+        Usuario u = usuarioDAO.autenticarUsuario(EMAIL, PASSWORD);
         assertNotNull(u);
         assertTrue(u.getPasswordHash().startsWith("$2"));
         assertFalse(u.getPasswordHash().contains(PASSWORD));
@@ -78,8 +83,8 @@ public class PruebasSeguridad {
     void testInyeccionSQL() {
         assumeTrue(dbOk);
         assertDoesNotThrow(() -> {
-            assertNull(usuarioDAO.login("' OR '1'='1' --", "x"));
-            assertNull(usuarioDAO.login(EMAIL, "' OR '1'='1"));
+            assertNull(usuarioDAO.autenticarUsuario("' OR '1'='1' --", "x"));
+            assertNull(usuarioDAO.autenticarUsuario(EMAIL, "' OR '1'='1"));
         });
     }
 }

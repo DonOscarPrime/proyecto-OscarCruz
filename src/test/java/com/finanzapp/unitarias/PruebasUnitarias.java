@@ -4,7 +4,13 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * PRUEBAS UNITARIAS — Lógica de negocio pura (sin base de datos).
+ * PRUEBAS UNITARIAS de Fox Wallet — Lógica de negocio pura (sin base de datos).
+ * <p>
+ * Verifica el correcto funcionamiento de los cálculos financieros internos de la app:
+ * tramos IRPF para el calculador de renta, cuota mensual por el método francés
+ * para el simulador de préstamos, y cálculo de ahorro mensual potencial
+ * para el simulador de hábitos.
+ * No requiere conexión a MySQL ni contexto JavaFX.
  */
 @DisplayName("Pruebas Unitarias")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

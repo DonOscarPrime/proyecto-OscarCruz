@@ -8,34 +8,60 @@ import java.util.ArrayList;
 import java.util.List;
 // CallableStatement está incluido en java.sql.*
 
+/**
+ * Acceso a datos de la tabla {@code objetivos} de Fox Wallet.
+ * <p>
+ * Un objetivo de ahorro representa una meta financiera del usuario
+ * (p. ej. "Fondo de emergencia", "Viaje a Japón", "Entrada del coche").
+ * El progreso se actualiza a través del procedimiento almacenado
+ * {@code actualizarProgresoObjetivo}, que marca el objetivo como
+ * completado de forma atómica cuando el importe alcanza la meta.
+ */
 public class ObjetivoDAO {
 
-    public List<Objetivo> listarPorUsuario(int usuarioId) {
-        List<Objetivo> lista = new ArrayList<>();
-        String sql = "SELECT * FROM objetivos WHERE usuario_id=? ORDER BY completado ASC, created_at DESC";
-        try (Connection c = DatabaseConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setInt(1, usuarioId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) lista.add(mapRow(rs));
+    /**
+     * Devuelve todos los objetivos de ahorro del usuario, mostrando primero
+     * los pendientes y luego los ya completados.
+     *
+     * @param usuarioId identificador del usuario en sesión
+     */
+    public List<Objetivo> obtenerObjetivosDeUsuario(int usuarioId) {
+        List<Objetivo> objetivos = new ArrayList<>();
+        String consultaObjetivos =
+                "SELECT * FROM objetivos WHERE usuario_id=? ORDER BY completado ASC, created_at DESC";
+        try (Connection conexion = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conexion.prepareStatement(consultaObjetivos)) {
+            stmt.setInt(1, usuarioId);
+            ResultSet resultados = stmt.executeQuery();
+            while (resultados.next()) objetivos.add(mapearObjetivo(resultados));
         } catch (SQLException e) { e.printStackTrace(); }
-        return lista;
+        return objetivos;
     }
 
-    public boolean insertar(Objetivo o) {
-        String sql = "INSERT INTO objetivos (usuario_id, nombre, objetivo, actual, emoji, fecha_limite) VALUES (?,?,?,?,?,?)";
-        try (Connection c = DatabaseConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, o.getUsuarioId());
-            ps.setString(2, o.getNombre());
-            ps.setDouble(3, o.getObjetivo());
-            ps.setDouble(4, o.getActual());
-            ps.setString(5, o.getEmoji() != null ? o.getEmoji() : "🎯");
-            ps.setObject(6, o.getFechaLimite());
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                ResultSet keys = ps.getGeneratedKeys();
-                if (keys.next()) o.setId(keys.getInt(1));
+    /**
+     * Persiste un nuevo objetivo de ahorro en la base de datos.
+     * Si el emoji es {@code null}, se asigna 🎯 por defecto.
+     *
+     * @param objetivo objetivo con nombre, importe meta, aportación inicial y fecha límite
+     * @return {@code true} si la inserción fue exitosa
+     */
+    public boolean crearObjetivo(Objetivo objetivo) {
+        String insertarObjetivo =
+                "INSERT INTO objetivos " +
+                "(usuario_id, nombre, objetivo, actual, emoji, fecha_limite) " +
+                "VALUES (?,?,?,?,?,?)";
+        try (Connection conexion = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conexion.prepareStatement(insertarObjetivo, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, objetivo.getUsuarioId());
+            stmt.setString(2, objetivo.getNombre());
+            stmt.setDouble(3, objetivo.getObjetivo());
+            stmt.setDouble(4, objetivo.getActual());
+            stmt.setString(5, objetivo.getEmoji() != null ? objetivo.getEmoji() : "🎯");
+            stmt.setObject(6, objetivo.getFechaLimite());
+            int filasInsertadas = stmt.executeUpdate();
+            if (filasInsertadas > 0) {
+                ResultSet idGenerado = stmt.getGeneratedKeys();
+                if (idGenerado.next()) objetivo.setId(idGenerado.getInt(1));
                 return true;
             }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -50,40 +76,50 @@ public class ObjetivoDAO {
      * objetivo y actualiza {@code completado} de forma atómica, evitando la
      * condición de carrera que produciría realizar la comprobación en el cliente
      * en dos operaciones separadas.
+     *
+     * @param objetivoId   id del objetivo cuyo progreso se actualiza
+     * @param importeActual nuevo importe acumulado por el usuario
      */
-    public boolean actualizarAporte(int id, double nuevoActual) {
-        String sql = "{CALL actualizarProgresoObjetivo(?, ?)}";
-        try (Connection c = DatabaseConnection.getConnection();
-             CallableStatement cs = c.prepareCall(sql)) {
-            cs.setInt(1, id);
-            cs.setDouble(2, nuevoActual);
-            cs.execute();
+    public boolean registrarAporteObjetivo(int objetivoId, double importeActual) {
+        String llamadaProcedimiento = "{CALL actualizarProgresoObjetivo(?, ?)}";
+        try (Connection conexion = DatabaseConnection.getConnection();
+             CallableStatement stmt = conexion.prepareCall(llamadaProcedimiento)) {
+            stmt.setInt(1, objetivoId);
+            stmt.setDouble(2, importeActual);
+            stmt.execute();
             return true;
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
 
-    public boolean eliminar(int id) {
-        String sql = "DELETE FROM objetivos WHERE id=?";
-        try (Connection c = DatabaseConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+    /**
+     * Elimina un objetivo de ahorro de Fox Wallet por su id.
+     *
+     * @param objetivoId id del objetivo a borrar
+     * @return {@code true} si se eliminó correctamente
+     */
+    public boolean eliminarObjetivo(int objetivoId) {
+        String eliminarObjetivo = "DELETE FROM objetivos WHERE id=?";
+        try (Connection conexion = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conexion.prepareStatement(eliminarObjetivo)) {
+            stmt.setInt(1, objetivoId);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
 
-    private Objetivo mapRow(ResultSet rs) throws SQLException {
-        Objetivo o = new Objetivo();
-        o.setId(rs.getInt("id"));
-        o.setUsuarioId(rs.getInt("usuario_id"));
-        o.setNombre(rs.getString("nombre"));
-        o.setObjetivo(rs.getDouble("objetivo"));
-        o.setActual(rs.getDouble("actual"));
-        o.setEmoji(rs.getString("emoji"));
-        Date fl = rs.getDate("fecha_limite");
-        o.setFechaLimite(fl != null ? fl.toLocalDate() : null);
-        o.setCompletado(rs.getBoolean("completado"));
-        return o;
+    /** Construye un objeto {@link Objetivo} a partir de la fila actual del {@link ResultSet}. */
+    private Objetivo mapearObjetivo(ResultSet resultados) throws SQLException {
+        Objetivo objetivo = new Objetivo();
+        objetivo.setId(resultados.getInt("id"));
+        objetivo.setUsuarioId(resultados.getInt("usuario_id"));
+        objetivo.setNombre(resultados.getString("nombre"));
+        objetivo.setObjetivo(resultados.getDouble("objetivo"));
+        objetivo.setActual(resultados.getDouble("actual"));
+        objetivo.setEmoji(resultados.getString("emoji"));
+        Date fechaLimiteSQL = resultados.getDate("fecha_limite");
+        objetivo.setFechaLimite(fechaLimiteSQL != null ? fechaLimiteSQL.toLocalDate() : null);
+        objetivo.setCompletado(resultados.getBoolean("completado"));
+        return objetivo;
     }
 }

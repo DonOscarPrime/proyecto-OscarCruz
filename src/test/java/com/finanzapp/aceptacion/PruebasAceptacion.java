@@ -15,7 +15,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * PRUEBAS DE ACEPTACIÓN (UAT) — Escenarios reales del usuario final.
+ * PRUEBAS DE ACEPTACIÓN (UAT) de Fox Wallet — Escenarios reales del usuario final.
+ * <p>
+ * Simula los flujos completos que realizaría Oswaldo (usuario tipo de Fox Wallet):
+ * registrar un ingreso de nómina y un gasto de supermercado, y verificar que
+ * el balance mensual calculado por la app es correcto. Valida la experiencia
+ * end-to-end contra la base de datos real.
  */
 @DisplayName("Pruebas de Aceptación (UAT)")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -51,9 +56,9 @@ public class PruebasAceptacion {
         assumeTrue(dbOk);
         Usuario u = new Usuario();
         u.setNombre("Ana García"); u.setEmail(EMAIL); u.setComunidad("Cataluña");
-        assertTrue(usuarioDAO.registrar(u, "Segura@123"));
+        assertTrue(usuarioDAO.registrarNuevoUsuario(u, "Segura@123"));
         uid = u.getId();
-        assertNotNull(usuarioDAO.login(EMAIL, "Segura@123"));
+        assertNotNull(usuarioDAO.autenticarUsuario(EMAIL, "Segura@123"));
     }
 
     /** HU-02: Como usuario quiero ver mi balance mensual. */
@@ -66,14 +71,14 @@ public class PruebasAceptacion {
         Movimiento ing = new Movimiento();
         ing.setUsuarioId(uid); ing.setTipo("ingreso"); ing.setNombre("Sueldo");
         ing.setCantidad(1800); ing.setCategoriaId(1); ing.setFecha(hoy);
-        movimientoDAO.insertar(ing);
+        movimientoDAO.registrarMovimiento(ing);
 
         Movimiento gas = new Movimiento();
         gas.setUsuarioId(uid); gas.setTipo("gasto"); gas.setNombre("Alquiler");
         gas.setCantidad(700); gas.setCategoriaId(1); gas.setFecha(hoy);
-        movimientoDAO.insertar(gas);
+        movimientoDAO.registrarMovimiento(gas);
 
-        List<Movimiento> lista = movimientoDAO.listarPorMes(uid, hoy.getYear(), hoy.getMonthValue());
+        List<Movimiento> lista = movimientoDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue());
         double balance = lista.stream()
             .mapToDouble(m -> "ingreso".equals(m.getTipo()) ? m.getCantidad() : -m.getCantidad())
             .sum();
@@ -87,6 +92,6 @@ public class PruebasAceptacion {
         assumeTrue(dbOk && uid > 0);
         Usuario dup = new Usuario();
         dup.setNombre("Otro"); dup.setEmail(EMAIL); dup.setComunidad("Madrid");
-        assertThrows(RuntimeException.class, () -> usuarioDAO.registrar(dup, "otrapass"));
+        assertThrows(RuntimeException.class, () -> usuarioDAO.registrarNuevoUsuario(dup, "otrapass"));
     }
 }

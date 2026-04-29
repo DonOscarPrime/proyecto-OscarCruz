@@ -8,7 +8,12 @@ import java.sql.Connection;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * PRUEBAS DE SISTEMA — Verifica que el entorno cumple los requisitos mínimos.
+ * PRUEBAS DE SISTEMA de Fox Wallet — Verifica que el entorno de ejecución
+ * cumple los requisitos mínimos para desplegar la aplicación.
+ * <p>
+ * Comprueba la versión de Java (≥ 17), la disponibilidad de la conexión MySQL,
+ * la existencia de las tablas principales del esquema y la presencia del
+ * driver JDBC en el classpath.
  */
 @DisplayName("Pruebas de Sistema")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
