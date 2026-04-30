@@ -78,21 +78,21 @@ public class SimuladorController implements Initializable {
         VBox card = new VBox(10);
         card.setPrefWidth(240);
         card.setPadding(new Insets(16));
-        card.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:14;-fx-border-radius:14;" +
-            "-fx-border-color:#F0EEE9;-fx-border-width:1;-fx-cursor:hand;");
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:#FAFAF8;-fx-background-radius:14;" +
-            "-fx-border-radius:14;-fx-border-color:#D0CCC7;-fx-border-width:1;-fx-cursor:hand;"));
-        card.setOnMouseExited(e  -> card.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:14;" +
-            "-fx-border-radius:14;-fx-border-color:#F0EEE9;-fx-border-width:1;-fx-cursor:hand;"));
+        card.setStyle("-fx-background-color:-color-surface;-fx-background-radius:14;-fx-border-radius:14;" +
+            "-fx-border-color:-color-border;-fx-border-width:1;-fx-cursor:hand;");
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:-color-surface2;-fx-background-radius:14;" +
+            "-fx-border-radius:14;-fx-border-color:-color-border2;-fx-border-width:1;-fx-cursor:hand;"));
+        card.setOnMouseExited(e  -> card.setStyle("-fx-background-color:-color-surface;-fx-background-radius:14;" +
+            "-fx-border-radius:14;-fx-border-color:-color-border;-fx-border-width:1;-fx-cursor:hand;"));
 
         // Header
         HBox header = new HBox(8);
         header.setAlignment(Pos.CENTER_LEFT);
         Label emojiLbl = new Label(habito.getEmoji()); emojiLbl.setStyle("-fx-font-size:22px;");
         VBox nameBox = new VBox(2);
-        Label name = new Label(habito.getNombre()); name.setStyle("-fx-font-weight:600;-fx-font-size:13px;");
+        Label name = new Label(habito.getNombre()); name.setStyle("-fx-font-weight:600;-fx-font-size:13px;-fx-text-fill:-color-text;");
         Label desc = new Label(habito.getCoste() + "€ " + habito.getDescripcion());
-        desc.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+        desc.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
         nameBox.getChildren().addAll(name, desc);
         HBox.setHgrow(nameBox, Priority.ALWAYS);
         header.getChildren().addAll(emojiLbl, nameBox);
@@ -100,11 +100,11 @@ public class SimuladorController implements Initializable {
         // Frecuencia actual
         HBox freqRow = new HBox(8);
         freqRow.setAlignment(Pos.CENTER_LEFT);
-        Label freqLbl = new Label("Actual:"); freqLbl.setStyle("-fx-font-size:12px;-fx-text-fill:#6B6A65;");
+        Label freqLbl = new Label("Actual:"); freqLbl.setStyle("-fx-font-size:12px;-fx-text-fill:-color-text2;");
         Spinner<Integer> spinner = new Spinner<>(0, 100, habito.getFrecuenciaActual());
         spinner.setEditable(true);
         spinner.setPrefWidth(80);
-        Label unidadLbl = new Label("/" + habito.getUnidad()); unidadLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+        Label unidadLbl = new Label("/" + habito.getUnidad()); unidadLbl.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
         spinner.valueProperty().addListener((obs, oldV, newV) -> {
             habito.setFrecuenciaActual(newV);
             dao.actualizarFrecuenciasHabito(habito);
@@ -115,11 +115,11 @@ public class SimuladorController implements Initializable {
         // Objetivo
         HBox objRow = new HBox(8);
         objRow.setAlignment(Pos.CENTER_LEFT);
-        Label objLbl = new Label("Objetivo:"); objLbl.setStyle("-fx-font-size:12px;-fx-text-fill:#6B6A65;");
+        Label objLbl = new Label("Objetivo:"); objLbl.setStyle("-fx-font-size:12px;-fx-text-fill:-color-text2;");
         Spinner<Integer> spinnerObj = new Spinner<>(0, 100, habito.getFrecuenciaObj());
         spinnerObj.setEditable(true);
         spinnerObj.setPrefWidth(80);
-        Label unidadObj = new Label("/" + habito.getUnidad()); unidadObj.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+        Label unidadObj = new Label("/" + habito.getUnidad()); unidadObj.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
         spinnerObj.valueProperty().addListener((obs, oldV, newV) -> {
             habito.setFrecuenciaObj(newV);
             dao.actualizarFrecuenciasHabito(habito);
@@ -129,13 +129,13 @@ public class SimuladorController implements Initializable {
 
         // Costes y ahorro mensual potencial
         Label costoActual = new Label("Coste/mes actual: " + fmt(habito.getGastoMensualActual()) + "€");
-        costoActual.setStyle("-fx-font-size:11px;-fx-text-fill:#6B6A65;");
+        costoActual.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text2;");
 
         double ahorroPotencial = habito.getAhorroMensualPotencial();
         Label ahorroLbl = new Label(ahorroPotencial > 0
             ? "💚 Ahorro posible: " + fmt(ahorroPotencial) + "€/mes"
             : "Sin margen de ahorro");
-        ahorroLbl.setStyle("-fx-font-size:11px;-fx-text-fill:" + (ahorroPotencial > 0 ? "#1D9E75" : "#A09F9B") + ";");
+        ahorroLbl.setStyle("-fx-font-size:11px;-fx-text-fill:" + (ahorroPotencial > 0 ? "#1D9E75" : "-color-text3") + ";");
 
         Button del = new Button("🗑 Eliminar");
         del.setStyle("-fx-background-color:transparent;-fx-text-fill:#D85A30;-fx-cursor:hand;-fx-font-size:11px;");

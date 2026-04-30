@@ -113,21 +113,21 @@ public class GastosController implements Initializable {
             HBox row = new HBox(12);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(10, 12, 10, 12));
-            row.setStyle("-fx-border-color:transparent transparent #F0EEE9 transparent;-fx-border-width:0 0 1 0;");
+            row.setStyle("-fx-border-color:transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;");
 
             Label icon = new Label(m.getCategoriaEmoji() != null ? m.getCategoriaEmoji() : "💳");
             icon.setStyle("-fx-font-size:18px;-fx-min-width:36px;-fx-min-height:36px;" +
                 "-fx-background-radius:10;-fx-alignment:center;" +
-                (m.isIngreso() ? "-fx-background-color:#E1F5EE;" : "-fx-background-color:#F0EEE9;"));
+                (m.isIngreso() ? "-fx-background-color:rgba(29,158,117,0.15);" : "-fx-background-color:-color-surface2;"));
 
             VBox info = new VBox(2);
-            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;");
-            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
+            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
             info.getChildren().addAll(name, cat);
             HBox.setHgrow(info, Priority.ALWAYS);
 
             Label fecha = new Label(m.getFecha() != null ? m.getFecha().format(fmt) : "");
-            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;min-width:50px;");
+            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;min-width:50px;");
 
             Label amt = new Label((m.isIngreso() ? "+" : "-") + this.fmt(m.getCantidad()) + "€");
             amt.setStyle("-fx-font-family:monospace;-fx-font-size:13px;-fx-font-weight:bold;" +
@@ -145,7 +145,7 @@ public class GastosController implements Initializable {
         }
         if (movs.isEmpty()) {
             Label empty = new Label("Sin movimientos");
-            empty.setStyle("-fx-text-fill:#A09F9B;-fx-padding:24px;");
+            empty.setStyle("-fx-text-fill:-color-text3;-fx-padding:24px;");
             txList.getChildren().add(empty);
         }
     }

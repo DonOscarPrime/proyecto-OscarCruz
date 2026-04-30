@@ -104,14 +104,15 @@ public class DashboardController implements Initializable, MainController.ChildC
             ci++;
         }
         // Inner hole
-        gc.setFill(Color.web("#F7F6F3"));
+        boolean dark = Session.getInstance().isDarkMode();
+        gc.setFill(Color.web(dark ? "#131211" : "#F7F6F3"));
         gc.fillOval(30, 30, 60, 60);
         // Center text
-        gc.setFill(Color.web("#1A1916"));
+        gc.setFill(Color.web(dark ? "#EEECE7" : "#1A1916"));
         gc.setFont(Font.font("System", FontWeight.BOLD, 14));
         gc.fillText(fmt(total) + "€", 35, 57);
         gc.setFont(Font.font("System", 9));
-        gc.setFill(Color.web("#A09F9B"));
+        gc.setFill(Color.web(dark ? "#6B6A65" : "#A09F9B"));
         gc.fillText("total", 48, 68);
 
         // Legend
@@ -123,10 +124,10 @@ public class DashboardController implements Initializable, MainController.ChildC
             Label dot = new Label("●");
             dot.setStyle("-fx-text-fill:" + colors[ci % colors.length] + ";-fx-font-size:10px;");
             Label name = new Label(e.getKey());
-            name.setStyle("-fx-font-size:12px;");
+            name.setStyle("-fx-font-size:12px;-fx-text-fill:-color-text;");
             HBox.setHgrow(name, Priority.ALWAYS);
             Label val = new Label(fmt(e.getValue()) + "€");
-            val.setStyle("-fx-font-size:12px;-fx-font-family:monospace;");
+            val.setStyle("-fx-font-size:12px;-fx-font-family:monospace;-fx-text-fill:-color-text;");
             row.getChildren().addAll(dot, name, val);
             donutLegend.getChildren().add(row);
             ci++;
@@ -168,7 +169,7 @@ public class DashboardController implements Initializable, MainController.ChildC
             gc.setFill(Color.web("#D85A30", 0.65));
             gc.fillRoundRect(x + barW + 2, chartH - hG, barW, hG, 4, 4);
 
-            gc.setFill(Color.web("#A09F9B"));
+            gc.setFill(Color.web(Session.getInstance().isDarkMode() ? "#6B6A65" : "#A09F9B"));
             gc.setFont(Font.font("System", 9));
             gc.fillText(labels[i], x + 3, chartH + 14);
         }
@@ -181,21 +182,21 @@ public class DashboardController implements Initializable, MainController.ChildC
             HBox row = new HBox(12);
             row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             row.setPadding(new Insets(10, 12, 10, 12));
-            row.setStyle("-fx-border-color: transparent transparent #F0EEE9 transparent;-fx-border-width:0 0 1 0;");
+            row.setStyle("-fx-border-color: transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;");
 
             Label icon = new Label(m.getCategoriaEmoji() != null ? m.getCategoriaEmoji() : "💳");
             icon.setStyle("-fx-font-size:18px;-fx-min-width:36px;-fx-min-height:36px;" +
                 "-fx-background-radius:10;-fx-alignment:center;" +
-                (m.isIngreso() ? "-fx-background-color:#E1F5EE;" : "-fx-background-color:#F0EEE9;"));
+                (m.isIngreso() ? "-fx-background-color:rgba(29,158,117,0.15);" : "-fx-background-color:-color-surface2;"));
 
             VBox info = new VBox(2);
-            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;");
-            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
+            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
             info.getChildren().addAll(name, cat);
             HBox.setHgrow(info, Priority.ALWAYS);
 
             Label fecha = new Label(m.getFecha() != null ? m.getFecha().format(DateTimeFormatter.ofPattern("d MMM", new Locale("es"))) : "");
-            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
 
             Label amt = new Label((m.isIngreso() ? "+" : "-") + fmt(m.getCantidad()) + "€");
             amt.setStyle("-fx-font-family:monospace;-fx-font-size:13px;-fx-font-weight:bold;" +
@@ -206,7 +207,7 @@ public class DashboardController implements Initializable, MainController.ChildC
         }
         if (movs.isEmpty()) {
             Label empty = new Label("Sin movimientos este mes");
-            empty.setStyle("-fx-text-fill:#A09F9B;-fx-padding:20px;");
+            empty.setStyle("-fx-text-fill:-color-text3;-fx-padding:20px;");
             txList.getChildren().add(empty);
         }
     }
@@ -216,21 +217,21 @@ public class DashboardController implements Initializable, MainController.ChildC
         objetivosBox.getChildren().clear();
         for (Objetivo o : objs.stream().filter(ob -> !ob.isCompletado()).limit(3).toList()) {
             VBox card = new VBox(8);
-            card.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:14;-fx-border-radius:14;" +
-                "-fx-border-color:#F0EEE9;-fx-border-width:1;-fx-padding:14;");
+            card.setStyle("-fx-background-color:-color-surface;-fx-background-radius:14;-fx-border-radius:14;" +
+                "-fx-border-color:-color-border;-fx-border-width:1;-fx-padding:14;");
             HBox.setHgrow(card, Priority.ALWAYS);
 
             Label emoji = new Label(o.getEmoji() != null ? o.getEmoji() : "🎯");
             emoji.setStyle("-fx-font-size:22px;");
-            Label name = new Label(o.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;");
+            Label name = new Label(o.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
 
-            ProgressBar pb = new ProgressBar(o.getPorcentaje() / 100.0);
+            ProgressBar pb = new ProgressBar(o.getPorcentajeProgreso() / 100.0);
             pb.setMaxWidth(Double.MAX_VALUE);
             pb.setStyle("-fx-accent:#1D9E75;-fx-pref-height:8px;");
 
             Label pct = new Label(String.format("%.0f%% · %s€ de %s€",
-                o.getPorcentaje(), fmt(o.getActual()), fmt(o.getObjetivo())));
-            pct.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+                o.getPorcentajeProgreso(), fmt(o.getActual()), fmt(o.getObjetivo())));
+            pct.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
 
             card.getChildren().addAll(emoji, name, pb, pct);
             objetivosBox.getChildren().add(card);

@@ -47,9 +47,10 @@ public class ObjetivosController implements Initializable {
         VBox card = new VBox(10);
         card.setPrefWidth(280);
         card.setPadding(new Insets(16));
-        String bg = objetivo.isCompletado() ? "#E1F5EE" : "#FFFFFF";
+        boolean dark = Session.getInstance().isDarkMode();
+        String bg = objetivo.isCompletado() ? (dark ? "#1A3D30" : "#E1F5EE") : "-color-surface";
         card.setStyle("-fx-background-color:" + bg + ";-fx-background-radius:14;" +
-            "-fx-border-radius:14;-fx-border-color:#F0EEE9;-fx-border-width:1;");
+            "-fx-border-radius:14;-fx-border-color:-color-border;-fx-border-width:1;");
 
         // Cabecera: emoji + nombre del objetivo
         HBox header = new HBox(8);
@@ -57,7 +58,7 @@ public class ObjetivosController implements Initializable {
         Label emoji = new Label(objetivo.getEmoji() != null ? objetivo.getEmoji() : "🎯");
         emoji.setStyle("-fx-font-size:24px;");
         Label name = new Label(objetivo.getNombre());
-        name.setStyle("-fx-font-size:14px;-fx-font-weight:600;");
+        name.setStyle("-fx-font-size:14px;-fx-font-weight:600;-fx-text-fill:-color-text;");
         HBox.setHgrow(name, Priority.ALWAYS);
         if (objetivo.isCompletado()) {
             Label badge = new Label("✓ Completado");
@@ -76,10 +77,10 @@ public class ObjetivosController implements Initializable {
 
         Label pctLbl = new Label(String.format("%.0f%% · %.0f€ de %.0f€",
             porcentaje, objetivo.getActual(), objetivo.getObjetivo()));
-        pctLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#6B6A65;");
+        pctLbl.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text2;");
 
         Label restante = new Label("Faltan: " + fmt(objetivo.getImporteRestante()) + "€");
-        restante.setStyle("-fx-font-size:12px;-fx-text-fill:#A09F9B;");
+        restante.setStyle("-fx-font-size:12px;-fx-text-fill:-color-text3;");
 
         // Fila de aporte rápido
         HBox aporteRow = new HBox(6);
@@ -88,7 +89,7 @@ public class ObjetivosController implements Initializable {
         aporteTxt.setPromptText("Añadir €");
         aporteTxt.setPrefWidth(90);
         aporteTxt.setStyle("-fx-background-radius:6;-fx-border-radius:6;" +
-            "-fx-border-color:#E0DDDA;-fx-padding:4 8;-fx-font-size:12px;");
+            "-fx-border-color:-color-border2;-fx-padding:4 8;-fx-font-size:12px;");
 
         Button aporteBtn = new Button("Aportar");
         aporteBtn.setStyle("-fx-background-color:#1D9E75;-fx-text-fill:white;" +
@@ -112,7 +113,7 @@ public class ObjetivosController implements Initializable {
 
         if (objetivo.getFechaLimite() != null) {
             Label limite = new Label("Fecha límite: " + objetivo.getFechaLimite());
-            limite.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+            limite.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
             card.getChildren().add(limite);
         }
         return card;

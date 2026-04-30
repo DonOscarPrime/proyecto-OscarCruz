@@ -40,7 +40,7 @@ public class NotificacionesController implements Initializable {
 
         if (notifs.isEmpty()) {
             Label empty = new Label("No tienes notificaciones");
-            empty.setStyle("-fx-text-fill:#A09F9B;-fx-padding:24px;-fx-font-size:13px;");
+            empty.setStyle("-fx-text-fill:-color-text3;-fx-padding:24px;-fx-font-size:13px;");
             notifList.getChildren().add(empty);
             return;
         }
@@ -51,8 +51,8 @@ public class NotificacionesController implements Initializable {
             HBox row = new HBox(14);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(14, 16, 14, 16));
-            String borderStyle = "-fx-border-color:transparent transparent #F0EEE9 transparent;-fx-border-width:0 0 1 0;";
-            String bg = n.isLeida() ? "transparent" : "#FAFAF8";
+            String borderStyle = "-fx-border-color:transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;";
+            String bg = n.isLeida() ? "transparent" : "-color-surface2";
             row.setStyle("-fx-background-color:" + bg + ";" + borderStyle);
 
             // Dot indicator
@@ -64,11 +64,11 @@ public class NotificacionesController implements Initializable {
             HBox.setHgrow(body, Priority.ALWAYS);
 
             Label titulo = new Label(n.getTitulo());
-            titulo.setStyle("-fx-font-weight:" + (n.isLeida() ? "400" : "600") + ";-fx-font-size:13px;");
+            titulo.setStyle("-fx-font-weight:" + (n.isLeida() ? "400" : "600") + ";-fx-font-size:13px;-fx-text-fill:-color-text;");
 
             if (n.getMensaje() != null && !n.getMensaje().isBlank()) {
                 Label msg = new Label(n.getMensaje());
-                msg.setStyle("-fx-font-size:12px;-fx-text-fill:#6B6A65;");
+                msg.setStyle("-fx-font-size:12px;-fx-text-fill:-color-text2;");
                 msg.setWrapText(true);
                 body.getChildren().addAll(titulo, msg);
             } else {
@@ -77,7 +77,7 @@ public class NotificacionesController implements Initializable {
 
             String fechaStr = n.getCreatedAt() != null ? n.getCreatedAt().format(dtf) : "";
             Label fecha = new Label(fechaStr);
-            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
 
             Label badge = new Label(n.getTipo());
             badge.setStyle("-fx-font-size:10px;-fx-padding:2 8;-fx-background-radius:6;-fx-background-color:" +

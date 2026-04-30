@@ -82,7 +82,7 @@ public class MainController implements Initializable {
 
     private void showPlaceholder(String nombreFxml) {
         Label lbl = new Label("Vista '" + nombreFxml + "' en construcción");
-        lbl.setStyle("-fx-font-size:18px;-fx-text-fill:#6B6A65;");
+        lbl.setStyle("-fx-font-size:18px;-fx-text-fill:-color-text2;");
         contentArea.getChildren().setAll(lbl);
     }
 

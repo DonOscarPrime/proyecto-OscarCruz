@@ -13,44 +13,109 @@
 
     <HBox spacing="12">
 
-        <!-- Inputs -->
-        <VBox styleClass="card" spacing="10" prefWidth="380">
-            <Label text="DATOS PERSONALES" styleClass="card-title"/>
+        <!-- ─── Panel de entrada ─────────────────────────────────── -->
+        <ScrollPane fitToWidth="true" prefWidth="420" maxWidth="420"
+                    style="-fx-background:transparent;-fx-background-color:transparent;-fx-border-color:transparent;">
+            <VBox styleClass="card" spacing="10">
 
-            <Label text="Comunidad Autónoma" styleClass="form-label"/>
-            <ComboBox fx:id="cmbComunidad" maxWidth="Infinity" styleClass="form-input"/>
+                <!-- DATOS PERSONALES -->
+                <Label text="DATOS PERSONALES" styleClass="card-title"/>
 
-            <Label text="Situación personal" styleClass="form-label"/>
-            <ComboBox fx:id="cmbSituacion" maxWidth="Infinity" styleClass="form-input"/>
+                <Label text="Comunidad Autónoma" styleClass="form-label"/>
+                <ComboBox fx:id="cmbComunidad" maxWidth="Infinity" styleClass="form-input"/>
 
-            <Label text="Hijos menores de 25 años a cargo" styleClass="form-label"/>
-            <Spinner fx:id="spinHijos" min="0" max="10" initialValue="0" editable="true" maxWidth="Infinity"/>
+                <Label text="Situación personal" styleClass="form-label"/>
+                <ComboBox fx:id="cmbSituacion" maxWidth="Infinity" styleClass="form-input"/>
 
-            <Separator/>
-            <Label text="RENDIMIENTOS DEL TRABAJO" styleClass="card-title"/>
+                <Label text="Hijos menores de 25 años a cargo" styleClass="form-label"/>
+                <Spinner fx:id="spinHijos" min="0" max="10" initialValue="0" editable="true" maxWidth="Infinity"/>
 
-            <Label text="Salario bruto anual (€)" styleClass="form-label"/>
-            <TextField fx:id="txtSalario" promptText="25000" styleClass="form-input"/>
+                <Label text="De los anteriores, menores de 3 años" styleClass="form-label"/>
+                <Label text="(Mínimo adicional 2.800 €/hijo + deducción maternidad 1.200 €/hijo)"
+                       style="-fx-font-size:11px;-fx-text-fill:-color-text3;" wrapText="true"/>
+                <Spinner fx:id="spinHijosMenores3" min="0" max="10" initialValue="0" editable="true" maxWidth="Infinity"/>
 
-            <Label text="Retenciones ya practicadas (€)" styleClass="form-label"/>
-            <TextField fx:id="txtRetenciones" promptText="3500" styleClass="form-input"/>
+                <Separator/>
 
-            <Separator/>
-            <Label text="OTRAS RENTAS (opcional)" styleClass="card-title"/>
+                <!-- RENDIMIENTOS DEL TRABAJO -->
+                <Label text="RENDIMIENTOS DEL TRABAJO" styleClass="card-title"/>
 
-            <Label text="Rendimientos del capital mobiliario (€)" styleClass="form-label"/>
-            <TextField fx:id="txtCapMob" promptText="0" styleClass="form-input"/>
+                <Label text="Salario bruto anual (€)" styleClass="form-label"/>
+                <TextField fx:id="txtSalario" promptText="25000" styleClass="form-input"/>
 
-            <Label text="Rendimientos del capital inmobiliario (€)" styleClass="form-label"/>
-            <TextField fx:id="txtCapInm" promptText="0" styleClass="form-input"/>
+                <Label text="Cotización anual a la Seguridad Social — trabajador (€)" styleClass="form-label"/>
+                <Label text="4,70 % CC + 1,55 % desempleo + 0,10 % FP = 6,35 % del bruto"
+                       style="-fx-font-size:11px;-fx-text-fill:-color-text3;"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="txtCotizacionSS" promptText="Vacío = auto (≈ 6,35 %)"
+                               styleClass="form-input" HBox.hgrow="ALWAYS"/>
+                    <Button text="Auto" onAction="#autoSS" styleClass="btn-ghost" prefWidth="62"/>
+                </HBox>
 
-            <Label text="Ganancias patrimoniales (€)" styleClass="form-label"/>
-            <TextField fx:id="txtGanancias" promptText="0" styleClass="form-input"/>
+                <Label text="Retenciones ya practicadas (€)" styleClass="form-label"/>
+                <TextField fx:id="txtRetenciones" promptText="3500" styleClass="form-input"/>
 
-            <Button text="Calcular IRPF" styleClass="btn-primary" maxWidth="Infinity" onAction="#calcular"/>
-        </VBox>
+                <Label text="Aportaciones a plan de pensiones (€)" styleClass="form-label"/>
+                <Label text="Límite legal: 1.500 €/año (o 30 % de rendimientos netos del trabajo)"
+                       style="-fx-font-size:11px;-fx-text-fill:-color-text3;"/>
+                <TextField fx:id="txtPlanPensiones" promptText="0" styleClass="form-input"/>
 
-        <!-- Resultados -->
+                <Label text="Otros gastos deducibles del trabajo (€)" styleClass="form-label"/>
+                <Label text="Cuotas sindicales, colegio profesional, defensa jurídica laboral…"
+                       style="-fx-font-size:11px;-fx-text-fill:-color-text3;"/>
+                <TextField fx:id="txtOtrosGastosTrabajo" promptText="0" styleClass="form-input"/>
+
+                <Separator/>
+
+                <!-- OTRAS RENTAS -->
+                <Label text="OTRAS RENTAS (opcional)" styleClass="card-title"/>
+
+                <Label text="Rendimientos del capital mobiliario (€)" styleClass="form-label"/>
+                <TextField fx:id="txtCapMob" promptText="0  (dividendos, intereses…)" styleClass="form-input"/>
+
+                <Label text="Rendimientos del capital inmobiliario — ingresos brutos (€)" styleClass="form-label"/>
+                <TextField fx:id="txtCapInm" promptText="0  (alquiler percibido)" styleClass="form-input"/>
+
+                <Label text="Gastos deducibles del inmueble (€)" styleClass="form-label"/>
+                <Label text="Amortización, intereses hipoteca, seguros, IBI, reparaciones…"
+                       style="-fx-font-size:11px;-fx-text-fill:-color-text3;"/>
+                <TextField fx:id="txtGastosInm" promptText="0" styleClass="form-input"/>
+
+                <Label text="Ganancias patrimoniales netas (€)" styleClass="form-label"/>
+                <TextField fx:id="txtGanancias" promptText="0  (venta de acciones, fondos…)" styleClass="form-input"/>
+
+                <Separator/>
+
+                <!-- DEDUCCIONES EN CUOTA -->
+                <Label text="DEDUCCIONES EN CUOTA" styleClass="card-title"/>
+
+                <CheckBox fx:id="chkAlquiler"
+                          text="Alquiler vivienda habitual (contrato anterior al 01/01/2015)"
+                          onAction="#toggleAlquiler"/>
+                <VBox fx:id="boxAlquiler" spacing="6" visible="false" managed="false"
+                      style="-fx-padding:4 0 0 16;">
+                    <Label text="Cuotas de alquiler pagadas en el año (€)" styleClass="form-label"/>
+                    <Label text="Deducción: 10,05 % — base máxima 9.040 €"
+                           style="-fx-font-size:11px;-fx-text-fill:-color-text3;"/>
+                    <TextField fx:id="txtAlquilerAnual" promptText="7200" styleClass="form-input"/>
+                </VBox>
+
+                <CheckBox fx:id="chkVivienda"
+                          text="Inversión en vivienda habitual (compra/hipoteca antes del 01/01/2013)"
+                          onAction="#toggleVivienda"/>
+                <VBox fx:id="boxVivienda" spacing="6" visible="false" managed="false"
+                      style="-fx-padding:4 0 0 16;">
+                    <Label text="Capital + intereses hipotecarios pagados en el año (€)" styleClass="form-label"/>
+                    <Label text="Deducción: 15 % — base máxima 9.040 €"
+                           style="-fx-font-size:11px;-fx-text-fill:-color-text3;"/>
+                    <TextField fx:id="txtViviendaAnual" promptText="8000" styleClass="form-input"/>
+                </VBox>
+
+                <Button text="Calcular IRPF" styleClass="btn-primary" maxWidth="Infinity" onAction="#calcular"/>
+            </VBox>
+        </ScrollPane>
+
+        <!-- ─── Panel de resultados ──────────────────────────────── -->
         <VBox spacing="12" HBox.hgrow="ALWAYS">
 
             <VBox fx:id="resultPanel" styleClass="card" spacing="10" visible="false" managed="false">
@@ -69,14 +134,19 @@
 
                 <HBox spacing="12">
                     <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="Deducciones aplicadas" styleClass="stat-label"/>
+                        <Label fx:id="lblDeducciones" styleClass="stat-value stat-up"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
                         <Label text="Retenciones practicadas" styleClass="stat-label"/>
                         <Label fx:id="lblRetenciones" styleClass="stat-value stat-up"/>
                     </VBox>
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" alignment="CENTER">
-                        <Label text="Resultado (a pagar / devolver)" styleClass="stat-label"/>
-                        <Label fx:id="lblResultado" styleClass="stat-value" style="-fx-font-size:28px;"/>
-                    </VBox>
                 </HBox>
+
+                <VBox styleClass="stat-card" alignment="CENTER" spacing="2">
+                    <Label text="Resultado (a pagar / a devolver)" styleClass="stat-label"/>
+                    <Label fx:id="lblResultado" styleClass="stat-value" style="-fx-font-size:26px;"/>
+                </VBox>
 
                 <!-- Tramos -->
                 <Label text="TRAMOS IRPF APLICADOS" styleClass="card-title"/>

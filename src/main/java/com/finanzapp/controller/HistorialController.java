@@ -119,20 +119,20 @@ public class HistorialController implements Initializable {
             HBox row = new HBox(12);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(10, 16, 10, 16));
-            row.setStyle("-fx-border-color:transparent transparent #F0EEE9 transparent;-fx-border-width:0 0 1 0;");
-            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:#FAFAF8;-fx-border-color:transparent transparent #F0EEE9 transparent;-fx-border-width:0 0 1 0;"));
-            row.setOnMouseExited(e  -> row.setStyle("-fx-background-color:transparent;-fx-border-color:transparent transparent #F0EEE9 transparent;-fx-border-width:0 0 1 0;"));
+            row.setStyle("-fx-border-color:transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;");
+            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:-color-surface2;-fx-border-color:transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;"));
+            row.setOnMouseExited(e  -> row.setStyle("-fx-background-color:transparent;-fx-border-color:transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;"));
 
             Label icon = new Label(m.getCategoriaEmoji() != null ? m.getCategoriaEmoji() : "💳");
             icon.setStyle("-fx-font-size:18px;-fx-min-width:36px;-fx-min-height:36px;" +
                 "-fx-background-radius:10;-fx-alignment:center;" +
-                (m.isIngreso() ? "-fx-background-color:#E1F5EE;" : "-fx-background-color:#F0EEE9;"));
+                (m.isIngreso() ? "-fx-background-color:rgba(29,158,117,0.15);" : "-fx-background-color:-color-surface2;"));
 
             VBox info = new VBox(2);
-            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;");
-            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;");
+            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
+            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
             if (m.getNotas() != null && !m.getNotas().isBlank()) {
-                Label nota = new Label("📝 " + m.getNotas()); nota.setStyle("-fx-font-size:10px;-fx-text-fill:#A09F9B;");
+                Label nota = new Label("📝 " + m.getNotas()); nota.setStyle("-fx-font-size:10px;-fx-text-fill:-color-text3;");
                 info.getChildren().addAll(name, cat, nota);
             } else {
                 info.getChildren().addAll(name, cat);
@@ -140,7 +140,7 @@ public class HistorialController implements Initializable {
             HBox.setHgrow(info, Priority.ALWAYS);
 
             Label fecha = new Label(m.getFecha() != null ? m.getFecha().format(dtf) : "");
-            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:#A09F9B;min-width:90px;");
+            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;min-width:90px;");
 
             Label tipoBadge = new Label(m.isIngreso() ? "Ingreso" : "Gasto");
             tipoBadge.setStyle("-fx-font-size:10px;-fx-padding:2 8;-fx-background-radius:6;" +
@@ -156,7 +156,7 @@ public class HistorialController implements Initializable {
         }
         if (movs.isEmpty()) {
             Label empty = new Label("No hay movimientos para el período seleccionado");
-            empty.setStyle("-fx-text-fill:#A09F9B;-fx-padding:32px;-fx-font-size:13px;");
+            empty.setStyle("-fx-text-fill:-color-text3;-fx-padding:32px;-fx-font-size:13px;");
             txList.getChildren().add(empty);
         }
     }

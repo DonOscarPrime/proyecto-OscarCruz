@@ -24,6 +24,5 @@ com\finanzapp\util\Session.class
 com\finanzapp\controller\DashboardController.class
 com\finanzapp\controller\HistorialController.class
 com\finanzapp\dao\UsuarioDAO.class
-com\finanzapp\controller\PrestamosController.class
 com\finanzapp\dao\MovimientoDAO.class
 com\finanzapp\controller\RentaController.class
