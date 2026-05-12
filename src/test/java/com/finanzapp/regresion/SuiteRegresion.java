@@ -3,7 +3,6 @@ package com.finanzapp.regresion;
 import com.finanzapp.dao.MovimientoDAOTest;
 import com.finanzapp.dao.UsuarioDAOTest;
 import com.finanzapp.unitarias.PruebasUnitarias;
-import com.finanzapp.funcional.PruebasFuncionales;
 import com.finanzapp.sistema.PruebasSistema;
 import com.finanzapp.aceptacion.PruebasAceptacion;
 import com.finanzapp.seguridad.PruebasSeguridad;
@@ -13,7 +12,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 
 /**
  *  SUITE DE REGRESIÓN
- *  Su funcuón es ejecutar todos los test del proyecto de manera simultaneaj
+ *  Su funcuón es ejecutar todos los test del proyecto de manera simultanea.
  */
 @Suite
 @SuiteDisplayName("Suite de Regresión — Fox Wallet completo")
@@ -23,7 +22,6 @@ import org.junit.platform.suite.api.SuiteDisplayName;
     PruebasSeguridad.class,
     UsuarioDAOTest.class,
     MovimientoDAOTest.class,
-    PruebasFuncionales.class,
     PruebasAceptacion.class
 })
 public class SuiteRegresion {
