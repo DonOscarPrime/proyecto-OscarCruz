@@ -14,17 +14,17 @@
     <HBox spacing="16">
         <VBox spacing="12" maxWidth="600" HBox.hgrow="ALWAYS">
 
-            <!-- Apariencia -->
+
             <VBox styleClass="card" spacing="10">
                 <Label text="APARIENCIA" styleClass="card-title"/>
                 <HBox spacing="10">
                     <VBox styleClass="theme-btn-active" alignment="CENTER" spacing="4"
-                          prefWidth="100" onMouseClicked="#temaClaro" fx:id="btnClaro">
+                          prefWidth="100" onMouseClicked="#modoClaro" fx:id="botClaro">
                         <Label text="☀" style="-fx-font-size:20px;"/>
                         <Label text="Claro" style="-fx-font-size:12px;-fx-font-weight:500;"/>
                     </VBox>
                     <VBox styleClass="theme-btn" alignment="CENTER" spacing="4"
-                          prefWidth="100" onMouseClicked="#temaOscuro" fx:id="btnOscuro">
+                          prefWidth="100" onMouseClicked="#modoOscuro" fx:id="botOscuro">
                         <Label text="🌙" style="-fx-font-size:20px;"/>
                         <Label text="Oscuro" style="-fx-font-size:12px;-fx-font-weight:500;"/>
                     </VBox>
@@ -33,35 +33,33 @@
                        styleClass="hint-label" wrapText="true"/>
             </VBox>
 
-            <!-- General -->
+
             <VBox styleClass="card" spacing="10">
                 <Label text="GENERAL" styleClass="card-title"/>
                 <Label text="Idioma" styleClass="form-label"/>
-                <ComboBox fx:id="cmbIdioma" maxWidth="Infinity" styleClass="form-input"/>
+                <ComboBox fx:id="selectorIdioma" maxWidth="Infinity" styleClass="form-input"/>
                 <Label text="Moneda" styleClass="form-label"/>
-                <ComboBox fx:id="cmbMoneda" maxWidth="Infinity" styleClass="form-input"/>
+                <ComboBox fx:id="selectMoneda" maxWidth="Infinity" styleClass="form-input"/>
                 <Label text="Comunidad Autónoma (para cálculo de renta)" styleClass="form-label"/>
-                <ComboBox fx:id="cmbComunidad" maxWidth="Infinity" styleClass="form-input"/>
+                <ComboBox fx:id="selectComunidad" maxWidth="Infinity" styleClass="form-input"/>
             </VBox>
 
-            <!-- Notificaciones -->
             <VBox styleClass="card" spacing="10">
                 <Label text="NOTIFICACIONES" styleClass="card-title"/>
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <Label text="Alerta de presupuesto mensual" styleClass="form-label" HBox.hgrow="ALWAYS"/>
-                    <CheckBox fx:id="chkPresupuesto" selected="true"/>
+                    <CheckBox fx:id="checkBoxPresupuesto" selected="true"/>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <Label text="Recordatorio de objetivos" styleClass="form-label" HBox.hgrow="ALWAYS"/>
-                    <CheckBox fx:id="chkObjetivos" selected="true"/>
+                    <CheckBox fx:id="checkBoxObjetivo" selected="true"/>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <Label text="Resumen mensual" styleClass="form-label" HBox.hgrow="ALWAYS"/>
-                    <CheckBox fx:id="chkResumen" selected="false"/>
+                    <CheckBox fx:id="checkBoxResumen" selected="false"/>
                 </HBox>
             </VBox>
 
-            <!-- Acerca de -->
             <VBox styleClass="card" spacing="0">
                 <Label text="ACERCA DE" styleClass="card-title" style="-fx-padding:0 0 10 0;"/>
                 <HBox styleClass="data-row"><Label text="Versión"      styleClass="data-key"/><Label text="1.0.0"               styleClass="data-val" style="-fx-font-family:monospace;"/></HBox>

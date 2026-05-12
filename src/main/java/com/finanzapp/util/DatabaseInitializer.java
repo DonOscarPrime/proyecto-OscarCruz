@@ -7,65 +7,65 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
 /**
- * Inicializa el esquema de Fox Wallet en MySQL la primera vez que arranca la app.
- * <p>
- * Si la tabla {@code usuarios} ya existe, asume que el esquema está creado y solo
- * verifica que los procedimientos almacenados estén presentes (por compatibilidad
- * con instalaciones anteriores). En caso contrario, crea todas las tablas,
- * los procedimientos almacenados y los datos de demostración.
+ Inicializa la base de datos  al arrancar la aplicación.
+ Crea tablas, procedimientos almacenados y datos de prueba.
  */
 public class DatabaseInitializer {
 
-    /**
-     * Punto de entrada principal: inicializa el esquema de Fox Wallet si es necesario.
-     * Se llama desde {@link DatabaseConnection} tras abrir la primera conexión.
-     *
-     * @param conexion conexión activa a MySQL
-     */
     public static void inicializarEsquemaFoxWallet(Connection conexion) {
         try {
-            DatabaseMetaData meta = conexion.getMetaData();
-            ResultSet rs = meta.getTables(null, null, "usuarios", null);
-            if (rs.next()) {
-                // Las tablas ya existen; asegurarse de que los procedimientos también
-                verificarProcedimientosAlmacenados(conexion);
-                return;
-            }
             crearEsquemaTablas(conexion);
-            crearProcedimientosAlmacenados(conexion);
-            insertarDatosDemo(conexion);
+            verificarProcedimientosAlmacenados(conexion);
+
+            boolean baseDeDatosVacia = tablaUsuariosVacia(conexion);
+
+            if (baseDeDatosVacia) {
+                System.out.println("[FoxWallet] BD vacía detectada → cargando datos de demostración...");
+                insertarDatosDemo(conexion);
+                System.out.println("[FoxWallet] Datos demo cargados correctamente.");
+            } else {
+                System.out.println("[FoxWallet] BD ya contiene datos; se omite la carga demo.");
+            }
+
         } catch (SQLException e) {
+            System.err.println("[FoxWallet] ERROR inicializando la base de datos: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    /**
-     * Crea los procedimientos almacenados si aún no existen.
-     * Se llama tanto en primera inicialización como en arranques posteriores
-     * para que usuarios con versiones anteriores de la BD también los obtengan.
-     */
-    /**
-     * Verifica que los procedimientos almacenados de Fox Wallet existan y los crea si faltan.
-     * Se ejecuta también en cada arranque para garantizar compatibilidad con versiones anteriores.
-     */
-    public static void verificarProcedimientosAlmacenados(Connection conexion) {
-        try {
-            crearProcedimientosAlmacenados(conexion);
+
+    private static boolean tablaUsuariosVacia(Connection conexion) {
+        try (Statement st = conexion.createStatement();
+             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM usuarios")) {
+
+            if (rs.next()) {
+                int numeroDeUsuarios = rs.getInt(1);
+                boolean sinUsuarios = (numeroDeUsuarios == 0);
+                return sinUsuarios;
+            }
+            return true;
+
         } catch (SQLException e) {
-            // Si ya existen (error 1304) lo ignoramos silenciosamente
-            if (e.getErrorCode() != 1304) e.printStackTrace(); // 1304 = procedure already exists
+            return true;
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  Creación de tablas del esquema de Fox Wallet
-    // ─────────────────────────────────────────────────────────
+
+    public static void verificarProcedimientosAlmacenados(Connection conexion) {
+        try {
+            crearProcedimientos(conexion);
+        } catch (SQLException e) {
+            if (e.getErrorCode() != 1304) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private static void crearEsquemaTablas(Connection c) throws SQLException {
         try (Statement st = c.createStatement()) {
 
             st.execute("""
-                CREATE TABLE usuarios (
+                CREATE TABLE IF NOT EXISTS usuarios (
                     id                  INT AUTO_INCREMENT PRIMARY KEY,
                     nombre              VARCHAR(120)  NOT NULL,
                     email               VARCHAR(200)  NOT NULL UNIQUE,
@@ -86,7 +86,7 @@ public class DatabaseInitializer {
                 """);
 
             st.execute("""
-                CREATE TABLE categorias (
+                CREATE TABLE IF NOT EXISTS categorias (
                     id      INT AUTO_INCREMENT PRIMARY KEY,
                     nombre  VARCHAR(80)  NOT NULL,
                     emoji   VARCHAR(10)  NOT NULL,
@@ -96,7 +96,7 @@ public class DatabaseInitializer {
                 """);
 
             st.execute("""
-                CREATE TABLE movimientos (
+                CREATE TABLE IF NOT EXISTS movimientos (
                     id           INT AUTO_INCREMENT PRIMARY KEY,
                     usuario_id   INT  NOT NULL,
                     tipo         ENUM('gasto','ingreso') NOT NULL,
@@ -112,7 +112,7 @@ public class DatabaseInitializer {
                 """);
 
             st.execute("""
-                CREATE TABLE objetivos (
+                CREATE TABLE IF NOT EXISTS objetivos (
                     id           INT AUTO_INCREMENT PRIMARY KEY,
                     usuario_id   INT NOT NULL,
                     nombre       VARCHAR(200)  NOT NULL,
@@ -123,11 +123,11 @@ public class DatabaseInitializer {
                     completado   TINYINT(1)    DEFAULT 0,
                     created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+               ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 
                 """);
 
             st.execute("""
-                CREATE TABLE habitos (
+                CREATE TABLE IF NOT EXISTS habitos (
                     id                INT AUTO_INCREMENT PRIMARY KEY,
                     usuario_id        INT  NOT NULL,
                     emoji             VARCHAR(10)  NOT NULL,
@@ -142,41 +142,22 @@ public class DatabaseInitializer {
                 """);
 
             st.execute("""
-                CREATE TABLE notificaciones (
+                CREATE TABLE IF NOT EXISTS notificaciones (
                     id         INT AUTO_INCREMENT PRIMARY KEY,
                     usuario_id INT NOT NULL,
                     titulo     VARCHAR(200) NOT NULL,
                     mensaje    TEXT,
                     tipo       ENUM('info','success','warning','danger') DEFAULT 'info',
-                    leida      TINYINT(1)   DEFAULT 0,
                     created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """);
-
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  Procedimientos almacenados de Fox Wallet
-    // ─────────────────────────────────────────────────────────
-
-    /**
-     * Crea los dos procedimientos almacenados de Fox Wallet.
-     *
-     * 1. actualizarProgresoObjetivo — actualiza el importe ahorrado de un objetivo
-     *    y marca automáticamente 'completado = 1' en el mismo UPDATE si el nuevo
-     *    importe iguala o supera el objetivo. La lógica IF se evalúa en el servidor,
-     *    evitando la condición de carrera que produciría hacerlo en dos operaciones.
-     *
-     * 2. obtenerEstadisticasMes — devuelve en una sola llamada el total de ingresos
-     *    y gastos de un usuario para el mes y año indicados, centralizando en la BD
-     *    la agregación que de otro modo haría el cliente con Streams.
-     */
-    private static void crearProcedimientosAlmacenados(Connection c) throws SQLException {
+    private static void crearProcedimientos(Connection c) throws SQLException {
         try (Statement st = c.createStatement()) {
 
-            // ── Procedimiento 1: actualizar progreso de un objetivo ──────
             st.execute(
                 "CREATE PROCEDURE IF NOT EXISTS actualizarProgresoObjetivo(" +
                 "    IN p_id           INT," +
@@ -190,7 +171,6 @@ public class DatabaseInitializer {
                 "END"
             );
 
-            // ── Procedimiento 2: estadísticas mensuales de un usuario ────
             st.execute(
                 "CREATE PROCEDURE IF NOT EXISTS obtenerEstadisticasMes(" +
                 "    IN p_uid  INT," +
@@ -209,10 +189,6 @@ public class DatabaseInitializer {
             );
         }
     }
-
-    // ─────────────────────────────────────────────────────────
-    //  Datos de demostración para el usuario de prueba
-    // ─────────────────────────────────────────────────────────
 
     private static void insertarDatosDemo(Connection c) throws SQLException {
         insertCategorias(c);
@@ -246,8 +222,10 @@ public class DatabaseInitializer {
     }
 
     private static void insertUsuarios(Connection c) throws SQLException {
-        // Hash generado en tiempo de ejecución → siempre correcto para "Demo1234!"
-        String hash = BCrypt.hashpw("Demo1234!", BCrypt.gensalt(12));
+        String passwordDemo = "Demo1234!";
+        int costeFactor = 12;
+        String sal = BCrypt.gensalt(costeFactor);
+        String hash = BCrypt.hashpw(passwordDemo, sal);
         String sql  = """
             INSERT INTO usuarios
                 (nombre, email, password_hash, telefono, fecha_nacimiento, comunidad,
@@ -255,7 +233,6 @@ public class DatabaseInitializer {
             VALUES (?,?,?,?,?,?,?,?,?,?)
             """;
         try (PreparedStatement ps = c.prepareStatement(sql)) {
-            // Óscar
             ps.setString(1, "Óscar Cruz Vázquez");
             ps.setString(2, "oscar@email.com");
             ps.setString(3, hash);
@@ -268,7 +245,6 @@ public class DatabaseInitializer {
             ps.setDouble(10, 1100.00);
             ps.executeUpdate();
 
-            // Laura
             ps.setString(1, "Laura Martínez Roca");
             ps.setString(2, "laura@email.com");
             ps.setString(3, hash);
@@ -283,15 +259,10 @@ public class DatabaseInitializer {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  Movimientos (últimos 6 meses, fechas relativas a hoy)
-    // ─────────────────────────────────────────────────────────
-
     private static void insertMovimientos(Connection c) throws SQLException {
         String sql = "INSERT INTO movimientos (usuario_id, tipo, nombre, cantidad, categoria_id, notas, fecha) VALUES (?,?,?,?,?,?,?)";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
 
-            // ── Mes -5 ───────────────────────────────────────
             mov(ps,1,"ingreso","Nómina",                   1400.00, 7,"Nómina mensual bruta",             -5, 1);
             mov(ps,1,"gasto", "Alquiler",                   450.00, 1,"Piso compartido Lavapiés",         -5, 2);
             mov(ps,1,"gasto", "Luz y gas",                   68.50, 5,"Endesa — bimestral",               -5, 3);
@@ -310,7 +281,6 @@ public class DatabaseInitializer {
             mov(ps,1,"gasto", "Gym",                         40.00, 6,"Mensualidad gym Holmes Place",     -5,28);
             mov(ps,1,"ingreso","Transferencia amigo",        50.00, 7,"Me devuelve cena de agosto",       -5,29);
 
-            // ── Mes -4 ───────────────────────────────────────
             mov(ps,1,"ingreso","Nómina",                   1400.00, 7, null,                              -4, 1);
             mov(ps,1,"gasto", "Alquiler",                   450.00, 1, null,                              -4, 2);
             mov(ps,1,"gasto", "Mercadona",                   79.60, 2, null,                              -4, 4);
@@ -327,7 +297,6 @@ public class DatabaseInitializer {
             mov(ps,1,"gasto", "Cena con amigos",             45.00, 4,"Restaurante americano",            -4,28);
             mov(ps,1,"gasto", "Seguro móvil",                 8.99, 5, null,                              -4,28);
 
-            // ── Mes -3 ───────────────────────────────────────
             mov(ps,1,"ingreso","Nómina",                   1400.00, 7, null,                              -3, 1);
             mov(ps,1,"ingreso","Paga extra",                700.00, 7,"Media paga extra convenio",        -3, 1);
             mov(ps,1,"gasto", "Alquiler",                   450.00, 1, null,                              -3, 2);
@@ -344,7 +313,6 @@ public class DatabaseInitializer {
             mov(ps,1,"gasto", "Gym",                         40.00, 6, null,                              -3,28);
             mov(ps,1,"gasto", "Cotillón Nochevieja",         55.00, 4,"Fiesta fin de año",                -3,31);
 
-            // ── Mes -2 ───────────────────────────────────────
             mov(ps,1,"ingreso","Nómina",                   1400.00, 7, null,                              -2, 1);
             mov(ps,1,"gasto", "Alquiler",                   450.00, 1, null,                              -2, 2);
             mov(ps,1,"gasto", "Netflix",                     13.99, 5, null,                              -2, 7);
@@ -361,7 +329,6 @@ public class DatabaseInitializer {
             mov(ps,1,"gasto", "Suscripción ChatGPT",         22.00, 5,"Plus mensual",                     -2,15);
             mov(ps,1,"gasto", "Gym",                         40.00, 6, null,                              -2,28);
 
-            // ── Mes -1 ───────────────────────────────────────
             mov(ps,1,"ingreso","Nómina",                   1400.00, 7, null,                              -1, 1);
             mov(ps,1,"gasto", "Alquiler",                   450.00, 1, null,                              -1, 2);
             mov(ps,1,"gasto", "Netflix",                     13.99, 5, null,                              -1, 7);
@@ -380,7 +347,6 @@ public class DatabaseInitializer {
             mov(ps,1,"gasto", "Taxi noche sábado",           14.50, 3, null,                              -1,22);
             mov(ps,1,"ingreso","Venta objeto segunda mano",  80.00, 7,"Xbox vendida en Wallapop",         -1,25);
 
-            // ── Mes actual ───────────────────────────────────
             mov(ps,1,"ingreso","Nómina",                   1400.00, 7, null,                               0, 1);
             mov(ps,1,"gasto", "Alquiler",                   450.00, 1, null,                               0, 2);
             mov(ps,1,"gasto", "Netflix",                     13.99, 5, null,                               0, 7);
@@ -402,7 +368,6 @@ public class DatabaseInitializer {
             mov(ps,1,"gasto", "Pago reparación bici",        65.00, 6,"Cambio cámara + frenos",            0,20);
             mov(ps,1,"gasto", "Bar fin de semana",           19.50, 4, null,                               0,22);
 
-            // ── Laura ────────────────────────────────────────
             mov(ps,2,"ingreso","Factura cliente A",        1800.00,12,"Diseño web corporativo",            -1, 1);
             mov(ps,2,"ingreso","Factura cliente B",         900.00,12,"Mantenimiento mensual",             -1, 5);
             mov(ps,2,"gasto", "Alquiler oficina",           350.00, 1,"Coworking Barcelona centro",        -1, 2);
@@ -415,10 +380,6 @@ public class DatabaseInitializer {
             mov(ps,2,"gasto", "Gym + pilates",               55.00, 6, null,                                0, 5);
         }
     }
-
-    // ─────────────────────────────────────────────────────────
-    //  Objetivos
-    // ─────────────────────────────────────────────────────────
 
     private static void insertObjetivos(Connection c) throws SQLException {
         LocalDate hoy = LocalDate.now();
@@ -435,10 +396,6 @@ public class DatabaseInitializer {
             obj(ps,2,"Cámara mirrorless Sony A7",  2200.00, 2200.00,"📷", null,              1);
         }
     }
-
-    // ─────────────────────────────────────────────────────────
-    //  Hábitos
-    // ─────────────────────────────────────────────────────────
 
     private static void insertHabitos(Connection c) throws SQLException {
         String sql = "INSERT INTO habitos (usuario_id, emoji, nombre, frecuencia_actual, frecuencia_obj, unidad, coste, descripcion) VALUES (?,?,?,?,?,?,?,?)";
@@ -457,52 +414,44 @@ public class DatabaseInitializer {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  Notificaciones
-    // ─────────────────────────────────────────────────────────
-
     private static void insertNotificaciones(Connection c) throws SQLException {
-        String sql = "INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo, leida) VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo) VALUES (?,?,?,?)";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             noti(ps,1,"¡Presupuesto casi al límite!",
                     "Llevas 982€ gastados de tu límite mensual de 1.100€. Quedan solo 118€.",
-                    "warning",0);
+                    "warning");
             noti(ps,1,"Nómina recibida ✓",
                     "Se ha registrado un ingreso de 1.400€. ¡Buen comienzo de mes!",
-                    "success",0);
+                    "success");
             noti(ps,1,"Objetivo \"Viaje a Japón\" al 62%",
                     "Te faltan 1.140€ para tu meta. Con tu ritmo actual llegarás en agosto.",
-                    "info",0);
+                    "info");
             noti(ps,1,"¡Objetivo completado! 🎉",
                     "Has alcanzado tu objetivo \"Curso de inglés B2\". ¡Enhorabuena!",
-                    "success",1);
+                    "success");
             noti(ps,1,"Gasto inusual detectado",
                     "Has gastado 289€ en un solo movimiento (Nintendo Switch). ¿Todo correcto?",
-                    "warning",1);
+                    "warning");
             noti(ps,1,"Ingreso extra registrado",
                     "Has recibido 250€ por trabajo freelance. ¡Considera destinarlo a tus objetivos!",
-                    "success",0);
+                    "success");
             noti(ps,1,"Hábito con alto impacto",
                     "Tus suscripciones digitales suman 73€/mes. Podrías ahorrar 33€ reduciendo a tu objetivo.",
-                    "info",1);
+                    "info");
             noti(ps,1,"Nuevo mes, nuevo presupuesto",
                     "Comienza el mes. Tu presupuesto se ha reiniciado a 1.100€. ¡Suerte!",
-                    "info",0);
+                    "info");
             noti(ps,2,"Factura cobrada ✓",
                     "El cliente A ha pagado 1.800€. Balance mensual positivo.",
-                    "success",0);
+                    "success");
             noti(ps,2,"Cuota SS pendiente",
                     "Recuerda pagar los 294€ de Seguridad Social antes del día 20.",
-                    "warning",0);
+                    "warning");
             noti(ps,2,"Objetivo al 36%",
                     "\"Colchón autónoma\" va por el 36%. Mantén el ritmo de ahorro.",
-                    "info",1);
+                    "info");
         }
     }
-
-    // ─────────────────────────────────────────────────────────
-    //  Helpers
-    // ─────────────────────────────────────────────────────────
 
     private static void mov(PreparedStatement ps, int uid, String tipo, String nombre,
                              double cantidad, int catId, String notas,
@@ -511,9 +460,17 @@ public class DatabaseInitializer {
         ps.setString(2, tipo);
         ps.setString(3, nombre);
         ps.setDouble(4, cantidad);
-        if (catId > 0) ps.setInt(5, catId); else ps.setNull(5, Types.INTEGER);
+
+        if (catId > 0) {
+            ps.setInt(5, catId);
+        } else {
+            ps.setNull(5, Types.INTEGER);
+        }
+
         ps.setString(6, notas);
-        ps.setDate(7, Date.valueOf(safeDate(mesesAtras, dia)));
+        LocalDate fechaMovimiento = safeDate(mesesAtras, dia);
+        Date fechaSQL = Date.valueOf(fechaMovimiento);
+        ps.setDate(7, fechaSQL);
         ps.executeUpdate();
     }
 
@@ -525,8 +482,13 @@ public class DatabaseInitializer {
         ps.setDouble(3, objetivo);
         ps.setDouble(4, actual);
         ps.setString(5, emoji);
-        if (limite != null) ps.setDate(6, Date.valueOf(limite));
-        else                ps.setNull(6, Types.DATE);
+
+        if (limite != null) {
+            ps.setDate(6, Date.valueOf(limite));
+        } else {
+            ps.setNull(6, Types.DATE);
+        }
+
         ps.setInt(7, completado);
         ps.executeUpdate();
     }
@@ -546,24 +508,28 @@ public class DatabaseInitializer {
     }
 
     private static void noti(PreparedStatement ps, int uid, String titulo,
-                              String mensaje, String tipo, int leida) throws SQLException {
+                              String mensaje, String tipo) throws SQLException {
         ps.setInt(1, uid);
         ps.setString(2, titulo);
         ps.setString(3, mensaje);
         ps.setString(4, tipo);
-        ps.setInt(5, leida);
         ps.executeUpdate();
     }
 
-    /**
-     * Devuelve el día 'dia' del mes (hoy - mesesAtras).
-     * Si el día no existe en ese mes (ej. 31 de febrero), devuelve el último día.
-     */
     private static LocalDate safeDate(int mesesAtras, int dia) {
-        LocalDate primerDia = LocalDate.now()
-                .minusMonths(mesesAtras)
-                .with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate ultimoDia = primerDia.with(TemporalAdjusters.lastDayOfMonth());
-        return primerDia.withDayOfMonth(Math.min(dia, ultimoDia.getDayOfMonth()));
+        LocalDate hoyParaFecha = LocalDate.now();
+        LocalDate mesMenosN = hoyParaFecha.minusMonths(mesesAtras);
+        LocalDate primerDiaMes = mesMenosN.with(TemporalAdjusters.firstDayOfMonth());
+
+        LocalDate ultimoDiaDelMes = primerDiaMes.with(TemporalAdjusters.lastDayOfMonth());
+
+        int diaFinal;
+        if (dia > ultimoDiaDelMes.getDayOfMonth()) {
+            diaFinal = ultimoDiaDelMes.getDayOfMonth();
+        } else {
+            diaFinal = dia;
+        }
+
+        return primerDiaMes.withDayOfMonth(diaFinal);
     }
 }

@@ -2,184 +2,309 @@ package com.finanzapp.controller;
 
 import com.finanzapp.dao.CategoriaDAO;
 import com.finanzapp.dao.MovimientoDAO;
+import com.finanzapp.dao.NotificacionDAO;
 import com.finanzapp.model.Categoria;
 import com.finanzapp.model.Movimiento;
+import com.finanzapp.model.Notificacion;
+import com.finanzapp.model.Usuario;
+import com.finanzapp.renderer.MovimientoRenderer;
+import com.finanzapp.service.MovimientoService;
+import com.finanzapp.util.Formateador;
 import com.finanzapp.util.Session;
+import com.finanzapp.validator.MovimientoValidator;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 /**
  * Controlador del panel de movimientos de Fox Wallet.
- * <p>
- * Permite al usuario registrar nuevos gastos e ingresos, filtrarlos por tipo
- * y categoría, buscar por texto y eliminarlos. Muestra las estadísticas del
- * periodo actual: total de ingresos, gastos, balance y tasa de ahorro.
+ Gestiona el formulario y coordina validación, lógica y visualización.
  */
 public class GastosController implements Initializable {
 
-    @FXML private Label statIngresos, statGastos, statBalance, subBalance, statTasa;
-    @FXML private ComboBox<String>    cmbTipo, cmbFiltroTipo;
+    @FXML private Label estadisticaIngreso;
+    @FXML private Label estadisticaGastos;
+    @FXML private Label estadisticaBalance;
+    @FXML private Label subBalance;
+    @FXML private Label estadisticaTasa;
+    @FXML private ComboBox<String>    cmbTipo;
+    @FXML private ComboBox<String>    cmbFiltroTipo;
     @FXML private ComboBox<Categoria> cmbCategoria;
-    @FXML private TextField txtCantidad, txtNombre, txtNotas, txtBuscar;
+    @FXML private TextField txtCantidad;
+    @FXML private TextField txtNombre;
+    @FXML private TextField txtNotas;
+    @FXML private TextField TextoMensage;
     @FXML private DatePicker dateFecha;
-    @FXML private Label lblMsg, lblError;
+    @FXML private Label lblMsg;
+    @FXML private Label TextoError;
     @FXML private VBox txList;
 
-    private final MovimientoDAO movDAO = new MovimientoDAO();
-    private final CategoriaDAO  catDAO = new CategoriaDAO();
+    private final MovimientoDAO       movDAO              = new MovimientoDAO();
+    private final CategoriaDAO        catDAO              = new CategoriaDAO();
+    private final NotificacionDAO     notifDAO            = new NotificacionDAO();
+    private final MovimientoService   movimeentoService   = new MovimientoService(movDAO);
+    private final MovimientoRenderer  movimientoREnderes  = new MovimientoRenderer();
+    private final MovimientoValidator movimientoValidador = new MovimientoValidator();
+
     private List<Movimiento> todos;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbTipo.setItems(FXCollections.observableArrayList("Gasto", "Ingreso"));
         cmbTipo.setValue("Gasto");
-        cmbTipo.setOnAction(e -> actualizarCategoriasPorTipoMovimiento());
+        cmbTipo.setOnAction(e -> actualizarCategoriasPorTipo());
 
         cmbFiltroTipo.setItems(FXCollections.observableArrayList("Todos", "Gastos", "Ingresos"));
         cmbFiltroTipo.setValue("Todos");
-        cmbFiltroTipo.setOnAction(e -> filtrarMovimientosPorTipoYBusqueda());
+        cmbFiltroTipo.setOnAction(e -> filtrarYRenderizar());
 
-        txtBuscar.textProperty().addListener((obs, o, n) -> filtrarMovimientosPorTipoYBusqueda());
+        TextoMensage.textProperty().addListener((obs, o, n) -> filtrarYRenderizar());
 
         dateFecha.setValue(LocalDate.now());
-        actualizarCategoriasPorTipoMovimiento();
-        cargarMovimientosDeUsuario();
+        actualizarCategoriasPorTipo();
+        cargarMovimiento();
     }
 
-    /** Actualiza el ComboBox de categorías según el tipo de movimiento seleccionado. */
-    private void actualizarCategoriasPorTipoMovimiento() {
-        String tipo = "Ingreso".equals(cmbTipo.getValue()) ? "ingreso" : "gasto";
-        List<Categoria> cats = catDAO.obtenerCategoriasPorTipo(tipo);
+    private void cargarMovimiento() {
+        Session sesionActual = Session.getInstance();
+        Usuario usuarioEnSesion = sesionActual.getUsuarioActual();
+        int uid = usuarioEnSesion.getId();
+        todos = movimeentoService.obtenerDeUsuario(uid);
+        actualizarEstadisticas();
+        filtrarYRenderizar();
+    }
+
+    private void actualizarCategoriasPorTipo() {
+        String tipoSeleccionado = cmbTipo.getValue();
+        String tipoParaDAO;
+        if ("Ingreso".equals(tipoSeleccionado)) {
+            tipoParaDAO = "ingreso";
+        } else {
+            tipoParaDAO = "gasto";
+        }
+
+        List<Categoria> cats = catDAO.obtenerCategoriasPorTipo(tipoParaDAO);
         cmbCategoria.setItems(FXCollections.observableArrayList(cats));
-        if (!cats.isEmpty()) cmbCategoria.setValue(cats.get(0));
+        if (!cats.isEmpty()) {
+            cmbCategoria.setValue(cats.get(0));
+        }
     }
 
-    /** Carga todos los movimientos del usuario y actualiza las estadísticas del panel. */
-    private void cargarMovimientosDeUsuario() {
-        int uid = Session.getInstance().getUsuarioActual().getId();
-        todos = movDAO.obtenerMovimientosDeUsuario(uid);
-        actualizarStats();
-        filtrarMovimientosPorTipoYBusqueda();
+    //Estadísticas
+
+    private void actualizarEstadisticas() {
+        double ingresos = movimeentoService.calcularTotalIngresos(todos);
+        double gastos   = movimeentoService.calcularTotalGastos(todos);
+        double balance  = movimeentoService.calcularBalance(ingresos, gastos);
+        double tasa     = movimeentoService.calcularTasaAhorro(ingresos, balance);
+
+        estadisticaIngreso.setText(movimeentoService.etiquetaImporte(ingresos, true));
+        String gastosFormateados = Formateador.moneda(gastos);
+        String textoGastos = "-" + gastosFormateados + "€";
+        estadisticaGastos.setText(textoGastos);
+
+        String prefixBalance;
+        if (balance >= 0) {
+            prefixBalance = "+";
+        } else {
+            prefixBalance = "";
+        }
+        String balanceFormateado = Formateador.moneda(balance);
+        String textoBalance = prefixBalance + balanceFormateado + "€";
+        estadisticaBalance.setText(textoBalance);
+
+        estadisticaBalance.getStyleClass().removeAll("stat-up", "stat-down");
+        if (balance >= 0) {
+            estadisticaBalance.getStyleClass().add("stat-up");
+            subBalance.setText("margen positivo");
+        } else {
+            estadisticaBalance.getStyleClass().add("stat-down");
+            subBalance.setText("⚠ gastos > ingresos");
+        }
+
+        String tasaFormateadaGastos = Formateador.porcentaje(tasa);
+        estadisticaTasa.setText(tasaFormateadaGastos);
+        estadisticaTasa.getStyleClass().removeAll("stat-up", "stat-amber", "stat-down");
+
+        String EstiloTasa;
+        if (tasa >= 20) {
+            EstiloTasa = "stat-up";
+        } else if (tasa >= 0) {
+            EstiloTasa = "stat-amber";
+        } else {
+            EstiloTasa = "stat-down";
+        }
+        estadisticaTasa.getStyleClass().add(EstiloTasa);
     }
 
-    private void actualizarStats() {
-        double ing  = todos.stream().filter(Movimiento::isIngreso).mapToDouble(Movimiento::getCantidad).sum();
-        double gast = todos.stream().filter(m -> !m.isIngreso()).mapToDouble(Movimiento::getCantidad).sum();
-        double bal  = ing - gast;
-        double tasa = ing > 0 ? (bal / ing) * 100 : 0;
+    private void filtrarYRenderizar() {
+        String filtroTipo          = cmbFiltroTipo.getValue();
+        String textoBusquedaBruto  = TextoMensage.getText();
+        String textoBusquedaSinEsp = textoBusquedaBruto.trim();
+        String textoBusqueda       = textoBusquedaSinEsp.toLowerCase();
 
-        statIngresos.setText("+" + fmt(ing) + "€");
-        statGastos.setText("-" + fmt(gast) + "€");
-        statBalance.setText((bal >= 0 ? "+" : "") + fmt(bal) + "€");
-        statBalance.getStyleClass().removeAll("stat-up","stat-down");
-        statBalance.getStyleClass().add(bal >= 0 ? "stat-up" : "stat-down");
-        subBalance.setText(bal >= 0 ? "margen positivo" : "⚠ gastos > ingresos");
-        statTasa.setText(String.format("%.0f%%", tasa));
-        statTasa.getStyleClass().removeAll("stat-up","stat-amber","stat-down");
-        statTasa.getStyleClass().add(tasa >= 20 ? "stat-up" : tasa >= 0 ? "stat-amber" : "stat-down");
+        List<Movimiento> filtrados = new java.util.ArrayList<>();
+        for (Movimiento m : todos) {
+            if ("Gastos".equals(filtroTipo) && m.isIngreso()) {
+                continue;
+            }
+            if ("Ingresos".equals(filtroTipo) && !m.isIngreso()) {
+                continue;
+            }
+            if (!textoBusqueda.isEmpty()) {
+                String nombreMovimiento = m.getNombre();
+                String nombreEnMinusculas = nombreMovimiento.toLowerCase();
+                boolean enNombre = nombreEnMinusculas.contains(textoBusqueda);
+                boolean categoriaNoNula = m.getCategoriaNombre() != null;
+                boolean enCategoria;
+                if (categoriaNoNula) {
+                    String categoriaNombre = m.getCategoriaNombre();
+                    String categoriaEnMinusculas = categoriaNombre.toLowerCase();
+                    enCategoria = categoriaEnMinusculas.contains(textoBusqueda);
+                } else {
+                    enCategoria = false;
+                }
+                if (!enNombre && !enCategoria) {
+                    continue;
+                }
+            }
+            filtrados.add(m);
+        }
+        mostrarDatos(filtrados);
     }
 
-    /** Filtra la lista de movimientos visibles según tipo seleccionado y texto de búsqueda. */
-    private void filtrarMovimientosPorTipoYBusqueda() {
-        String filtro  = cmbFiltroTipo.getValue();
-        String buscar  = txtBuscar.getText().toLowerCase();
-        List<Movimiento> filtrados = todos.stream()
-            .filter(m -> {
-                if ("Gastos".equals(filtro)   && m.isIngreso())  return false;
-                if ("Ingresos".equals(filtro) && !m.isIngreso()) return false;
-                if (!buscar.isEmpty() && !m.getNombre().toLowerCase().contains(buscar)) return false;
-                return true;
-            }).collect(Collectors.toList());
-        renderList(filtrados);
-    }
-
-    private void renderList(List<Movimiento> movs) {
+    private void mostrarDatos(List<Movimiento> movs) {
         txList.getChildren().clear();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("d MMM", new Locale("es"));
+
         for (Movimiento m : movs) {
-            HBox row = new HBox(12);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setPadding(new Insets(10, 12, 10, 12));
-            row.setStyle("-fx-border-color:transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;");
-
-            Label icon = new Label(m.getCategoriaEmoji() != null ? m.getCategoriaEmoji() : "💳");
-            icon.setStyle("-fx-font-size:18px;-fx-min-width:36px;-fx-min-height:36px;" +
-                "-fx-background-radius:10;-fx-alignment:center;" +
-                (m.isIngreso() ? "-fx-background-color:rgba(29,158,117,0.15);" : "-fx-background-color:-color-surface2;"));
-
-            VBox info = new VBox(2);
-            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
-            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
-            info.getChildren().addAll(name, cat);
-            HBox.setHgrow(info, Priority.ALWAYS);
-
-            Label fecha = new Label(m.getFecha() != null ? m.getFecha().format(fmt) : "");
-            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;min-width:50px;");
-
-            Label amt = new Label((m.isIngreso() ? "+" : "-") + this.fmt(m.getCantidad()) + "€");
-            amt.setStyle("-fx-font-family:monospace;-fx-font-size:13px;-fx-font-weight:bold;" +
-                "-fx-text-fill:" + (m.isIngreso() ? "#1D9E75" : "#D85A30") + ";");
-
-            Button del = new Button("✕");
-            del.setStyle("-fx-background-color:transparent;-fx-text-fill:#D85A30;-fx-cursor:hand;-fx-font-size:11px;");
-            del.setOnAction(e -> {
-                movDAO.eliminarMovimiento(m.getId());
-                cargarMovimientosDeUsuario();
-            });
-
-            row.getChildren().addAll(icon, info, fecha, amt, del);
-            txList.getChildren().add(row);
+            Runnable accionEliminar = () -> {
+                movimeentoService.eliminar(m.getId());
+                cargarMovimiento();
+            };
+            javafx.scene.Node filaEliminar = movimientoREnderes.crearFilaConEliminar(m, accionEliminar);
+            txList.getChildren().add(filaEliminar);
         }
+
         if (movs.isEmpty()) {
-            Label empty = new Label("Sin movimientos");
-            empty.setStyle("-fx-text-fill:-color-text3;-fx-padding:24px;");
-            txList.getChildren().add(empty);
+            txList.getChildren().add(movimientoREnderes.crearMensajeVacio("Sin movimientos"));
         }
     }
 
-    @FXML private void guardar() {
-        lblError.setText(""); lblMsg.setText("");
-        String cantStr = txtCantidad.getText().trim().replace(",",".");
-        if (cantStr.isEmpty()) { lblError.setText("Introduce una cantidad."); return; }
-        double cant;
-        try { cant = Double.parseDouble(cantStr); } catch (NumberFormatException e) {
-            lblError.setText("Cantidad no válida."); return; }
-        if (cant <= 0) { lblError.setText("La cantidad debe ser mayor que 0."); return; }
+    // Presupuesto
+
+    /**
+     * Comprueba si el nuevo gasto hace superar el presupuesto mensual del usuario.
+     * Genera una notificación al cruzar el 80 % y otra al cruzar el 100 %.
+     * Solo dispara la alerta en el momento exacto en que se cruza el umbral,
+     * evitando notificaciones duplicadas en cada gasto posterior.
+     */
+    private void comprobarPresupuesto(int uid, double cantidadNuevoGasto) {
+        Usuario u = Session.getInstance().getUsuarioActual();
+        double presupuesto = u.getPresupuestoMensual();
+        if (presupuesto <= 0) return;
+
+        LocalDate hoy = LocalDate.now();
+        double totalMes   = movDAO.obtenerTotalPorTipoYMes(uid, hoy.getYear(), hoy.getMonthValue(), "gasto");
+        double totalAntes = totalMes - cantidadNuevoGasto;
+
+        if (totalAntes <= presupuesto && totalMes > presupuesto) {
+            Notificacion notif = new Notificacion();
+            notif.setUsuarioId(uid);
+            notif.setTitulo("Presupuesto superado");
+            notif.setMensaje(String.format(
+                "Has superado tu presupuesto mensual de %.2f€. Gastos del mes: %.2f€.",
+                presupuesto, totalMes));
+            notif.setTipo("danger");
+            notifDAO.registrarNotificacion(notif);
+
+        } else if (totalAntes <= presupuesto * 0.8 && totalMes > presupuesto * 0.8) {
+            Notificacion notif = new Notificacion();
+            notif.setUsuarioId(uid);
+            notif.setTitulo("¡Presupuesto casi al límite!");
+            notif.setMensaje(String.format(
+                "Llevas el %.0f%% del presupuesto mensual gastado (%.2f€ de %.2f€).",
+                (totalMes / presupuesto) * 100, totalMes, presupuesto));
+            notif.setTipo("warning");
+            notifDAO.registrarNotificacion(notif);
+        }
+    }
+
+    // Guardar
+
+    @FXML
+    private void guardar() {
+        TextoError.setText("");
+        lblMsg.setText("");
+
+        String cantStr = txtCantidad.getText().trim();
+        String errorCantidad = movimientoValidador.validarCantidad(cantStr);
+        if (errorCantidad != null) {
+            TextoError.setText(errorCantidad);
+            return;
+        }
 
         String desc = txtNombre.getText().trim();
-        if (desc.isEmpty()) { lblError.setText("Introduce una descripción."); return; }
+        String errorDesc = movimientoValidador.validarDescripcion(desc);
+        if (errorDesc != null) {
+            TextoError.setText(errorDesc);
+            return;
+        }
+
+        double cant = movimientoValidador.parsearCantidad(cantStr);
 
         Movimiento m = new Movimiento();
-        m.setUsuarioId(Session.getInstance().getUsuarioActual().getId());
-        m.setTipo("Ingreso".equals(cmbTipo.getValue()) ? "ingreso" : "gasto");
+        Session sesionGuardar = Session.getInstance();
+        Usuario usuarioGuardar = sesionGuardar.getUsuarioActual();
+        int uidGuardar = usuarioGuardar.getId();
+        m.setUsuarioId(uidGuardar);
+
+        String tipoSeleccionado = cmbTipo.getValue();
+        if ("Ingreso".equals(tipoSeleccionado)) {
+            m.setTipo("ingreso");
+        } else {
+            m.setTipo("gasto");
+        }
+
         m.setCantidad(cant);
         m.setNombre(desc);
         m.setNotas(txtNotas.getText());
-        m.setFecha(dateFecha.getValue() != null ? dateFecha.getValue() : LocalDate.now());
-        if (cmbCategoria.getValue() != null) m.setCategoriaId(cmbCategoria.getValue().getId());
 
-        if (movDAO.registrarMovimiento(m)) {
-            lblMsg.setText("✓ Movimiento guardado correctamente.");
-            txtCantidad.clear(); txtNombre.clear(); txtNotas.clear();
-            dateFecha.setValue(LocalDate.now());
-            cargarMovimientosDeUsuario();
+        LocalDate fechaSelect = dateFecha.getValue();
+        if (fechaSelect != null) {
+            m.setFecha(fechaSelect);
         } else {
-            lblError.setText("Error al guardar. Inténtalo de nuevo.");
+            m.setFecha(LocalDate.now());
+        }
+
+        if (cmbCategoria.getValue() != null) {
+            Categoria categoria = cmbCategoria.getValue();
+            int idCategoria = categoria.getId();
+            m.setCategoriaId(idCategoria);
+        }
+
+        boolean guardadoExitoso = movimeentoService.registrar(m);
+        if (guardadoExitoso) {
+            lblMsg.setText("Movimiento guardado correctamente.");
+            txtCantidad.clear();
+            txtNombre.clear();
+            txtNotas.clear();
+            dateFecha.setValue(LocalDate.now());
+            cargarMovimiento();
+            if ("gasto".equals(m.getTipo())) {
+                comprobarPresupuesto(m.getUsuarioId(), m.getCantidad());
+            }
+        } else {
+            TextoError.setText("Error al guardar. Inténtalo de nuevo.");
         }
     }
-
-    private String fmt(double v) { return String.format("%,.0f", v).replace(",","."); }
 }

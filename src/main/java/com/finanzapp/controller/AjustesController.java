@@ -11,61 +11,109 @@ import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseEvent;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
 
 /**
- * Controlador del panel de ajustes de Fox Wallet.
- * <p>
- * Permite al usuario cambiar sus preferencias de idioma, moneda y comunidad
- * autónoma, alternar entre tema claro y oscuro, y configurar qué tipos
- * de notificaciones automáticas desea recibir.
+ Controlador del panel de ajustes.
+ Permite al usuario modificar ciertos ajustes en la aplicación como el filtro claro/oscuro, cambiar el tipo de moneda
+ , la comunidad donde reside.
  */
 public class AjustesController implements Initializable {
 
-    @FXML private ComboBox<String> cmbIdioma, cmbMoneda, cmbComunidad;
-    @FXML private CheckBox  chkPresupuesto, chkObjetivos, chkResumen;
-    @FXML private VBox      btnClaro, btnOscuro;
+    @FXML private ComboBox<String> selectorIdioma;
+    @FXML private ComboBox<String> selectMoneda;
+    @FXML private ComboBox<String> selectComunidad;
+    @FXML private CheckBox  checkBoxPresupuesto;
+    @FXML private CheckBox  checkBoxObjetivo;
+    @FXML private CheckBox  checkBoxResumen;
+    @FXML private VBox      botClaro;
+    @FXML private VBox      botOscuro;
     @FXML private Label     lblMsg;
 
     private final UsuarioDAO dao = new UsuarioDAO();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        cmbIdioma.setItems(FXCollections.observableArrayList("Español", "English"));
-        cmbMoneda.setItems(FXCollections.observableArrayList("€ Euro", "$ Dólar", "£ Libra"));
-        cmbComunidad.setItems(FXCollections.observableArrayList(
-            "Madrid","Cataluña","Andalucía","Valencia","País Vasco","Galicia","Castilla y León","Otra"));
+        selectorIdioma.setItems(FXCollections.observableArrayList("Español", "English"));
+        selectMoneda.setItems(FXCollections.observableArrayList("€ Euro", "$ Dólar", "£ Libra"));
+        selectComunidad.setItems(FXCollections.observableArrayList(
+            "Madrid", "Cataluña", "Andalucía", "Valencia", "País Vasco", "Galicia", "Castilla y León", "Otra"));
 
-        Usuario u = Session.getInstance().getUsuarioActual();
-        cmbIdioma.setValue(u.getIdioma() != null ? u.getIdioma() : "Español");
-        cmbMoneda.setValue(u.getMoneda() != null ? (u.getMoneda().equals("€") ? "€ Euro" : u.getMoneda()) : "€ Euro");
-        cmbComunidad.setValue(u.getComunidad() != null ? u.getComunidad() : "Madrid");
+        Session sesionInit = Session.getInstance();
+        Usuario u = sesionInit.getUsuarioActual();
+
+        String idiomaUsuario = u.getIdioma();
+        if (idiomaUsuario != null) {
+            selectorIdioma.setValue(idiomaUsuario);
+        } else {
+            selectorIdioma.setValue("Español");
+        }
+
+        String monedaUsuario = u.getMoneda();
+        if (monedaUsuario != null) {
+            if (monedaUsuario.equals("€")) {
+                selectMoneda.setValue("€ Euro");
+            } else {
+                selectMoneda.setValue(monedaUsuario);
+            }
+        } else {
+            selectMoneda.setValue("€ Euro");
+        }
+
+        String comunidadUsuario = u.getComunidad();
+        if (comunidadUsuario != null) {
+            selectComunidad.setValue(comunidadUsuario);
+        } else {
+            selectComunidad.setValue("Madrid");
+        }
     }
 
-    @FXML void temaClaro(MouseEvent e) {
-        btnClaro.getStyleClass().removeAll("theme-btn","theme-btn-active");
-        btnClaro.getStyleClass().add("theme-btn-active");
-        btnOscuro.getStyleClass().removeAll("theme-btn","theme-btn-active");
-        btnOscuro.getStyleClass().add("theme-btn");
-        dao.guardarPreferenciaTema(Session.getInstance().getUsuarioActual().getId(), "claro");
+    @FXML
+    void modoClaro(MouseEvent e) {
+        botClaro.getStyleClass().removeAll("theme-btn", "theme-btn-active");
+        botClaro.getStyleClass().add("theme-btn-active");
+        botOscuro.getStyleClass().removeAll("theme-btn", "theme-btn-active");
+        botOscuro.getStyleClass().add("theme-btn");
+        Session sesionClaro = Session.getInstance();
+        Usuario usuarioClaro = sesionClaro.getUsuarioActual();
+        int idUsuario = usuarioClaro.getId();
+        dao.guardarPreferencia(idUsuario, "claro");
     }
 
-    @FXML void temaOscuro(MouseEvent e) {
-        btnOscuro.getStyleClass().removeAll("theme-btn","theme-btn-active");
-        btnOscuro.getStyleClass().add("theme-btn-active");
-        btnClaro.getStyleClass().removeAll("theme-btn","theme-btn-active");
-        btnClaro.getStyleClass().add("theme-btn");
-        dao.guardarPreferenciaTema(Session.getInstance().getUsuarioActual().getId(), "oscuro");
+    @FXML
+    void modoOscuro(MouseEvent e) {
+        botOscuro.getStyleClass().removeAll("theme-btn", "theme-btn-active");
+        botOscuro.getStyleClass().add("theme-btn-active");
+        botClaro.getStyleClass().removeAll("theme-btn", "theme-btn-active");
+        botClaro.getStyleClass().add("theme-btn");
+        Session sesionOscuro = Session.getInstance();
+        Usuario usuarioOscuro = sesionOscuro.getUsuarioActual();
+        int idUsuario = usuarioOscuro.getId();
+        dao.guardarPreferencia(idUsuario, "oscuro");
     }
 
-    @FXML void guardar() {
-        Usuario u = Session.getInstance().getUsuarioActual();
-        u.setIdioma(cmbIdioma.getValue());
-        String moneda = cmbMoneda.getValue();
-        u.setMoneda(moneda != null && moneda.startsWith("€") ? "€" : moneda != null && moneda.startsWith("$") ? "$" : "£");
-        u.setComunidad(cmbComunidad.getValue());
-        dao.actualizarPerfilUsuario(u);
+    @FXML
+    void guardar() {
+        Session sesionGuardar = Session.getInstance();
+        Usuario u = sesionGuardar.getUsuarioActual();
+        u.setIdioma(selectorIdioma.getValue());
+
+        String monedaSeleccionada = selectMoneda.getValue();
+        boolean monedaNoNula = monedaSeleccionada != null;
+        boolean esEuro = monedaNoNula && monedaSeleccionada.startsWith("€");
+        boolean esDolar = monedaNoNula && monedaSeleccionada.startsWith("$");
+        String simboloMoneda;
+        if (esEuro) {
+            simboloMoneda = "€";
+        } else if (esDolar) {
+            simboloMoneda = "$";
+        } else {
+            simboloMoneda = "£";
+        }
+        u.setMoneda(simboloMoneda);
+
+        u.setComunidad(selectComunidad.getValue());
+        dao.actualizarPerfil(u);
         lblMsg.setText("✓ Ajustes guardados.");
     }
 }

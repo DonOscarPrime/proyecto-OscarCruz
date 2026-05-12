@@ -14,14 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * PRUEBAS DE ACEPTACIÓN (UAT) de Fox Wallet — Escenarios reales del usuario final.
- * <p>
- * Simula los flujos completos que realizaría Oswaldo (usuario tipo de Fox Wallet):
- * registrar un ingreso de nómina y un gasto de supermercado, y verificar que
- * el balance mensual calculado por la app es correcto. Valida la experiencia
- * end-to-end contra la base de datos real.
- */
+
 @DisplayName("Pruebas de Aceptación (UAT)")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PruebasAceptacion {
@@ -56,7 +49,7 @@ public class PruebasAceptacion {
         assumeTrue(dbOk);
         Usuario u = new Usuario();
         u.setNombre("Ana García"); u.setEmail(EMAIL); u.setComunidad("Cataluña");
-        assertTrue(usuarioDAO.registrarNuevoUsuario(u, "Segura@123"));
+        assertTrue(usuarioDAO.registrarUsuario(u, "Segura@123"));
         uid = u.getId();
         assertNotNull(usuarioDAO.autenticarUsuario(EMAIL, "Segura@123"));
     }
@@ -78,7 +71,7 @@ public class PruebasAceptacion {
         gas.setCantidad(700); gas.setCategoriaId(1); gas.setFecha(hoy);
         movimientoDAO.registrarMovimiento(gas);
 
-        List<Movimiento> lista = movimientoDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue());
+        List<Movimiento> lista = movimientoDAO.obtenerMovimientosMes(uid, hoy.getYear(), hoy.getMonthValue());
         double balance = lista.stream()
             .mapToDouble(m -> "ingreso".equals(m.getTipo()) ? m.getCantidad() : -m.getCantidad())
             .sum();
@@ -92,6 +85,6 @@ public class PruebasAceptacion {
         assumeTrue(dbOk && uid > 0);
         Usuario dup = new Usuario();
         dup.setNombre("Otro"); dup.setEmail(EMAIL); dup.setComunidad("Madrid");
-        assertThrows(RuntimeException.class, () -> usuarioDAO.registrarNuevoUsuario(dup, "otrapass"));
+        assertThrows(RuntimeException.class, () -> usuarioDAO.registrarUsuario(dup, "otrapass"));
     }
 }

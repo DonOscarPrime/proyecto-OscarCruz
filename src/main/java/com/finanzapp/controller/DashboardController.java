@@ -4,15 +4,19 @@ import com.finanzapp.dao.MovimientoDAO;
 import com.finanzapp.dao.ObjetivoDAO;
 import com.finanzapp.model.Movimiento;
 import com.finanzapp.model.Objetivo;
+import com.finanzapp.model.Usuario;
+import com.finanzapp.renderer.DashboardRenderer;
+import com.finanzapp.service.DashboardService;
+import com.finanzapp.service.ObjetivoService;
+import com.finanzapp.util.Formateador;
 import com.finanzapp.util.Session;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -20,227 +24,355 @@ import javafx.scene.text.FontWeight;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
- * Controlador del panel principal (dashboard) de Fox Wallet.
- * <p>
- * Muestra el resumen financiero del mes en curso: saldo, ingresos y gastos totales,
- * tasa de ahorro, gráfico donut por categorías, gráfico de barras de los últimos
- * 6 meses, las 5 transacciones más recientes y los objetivos de ahorro pendientes.
+ * Controlador del panel principal  de Fox Wallet.
+ * Aporta el resumen financiero mensual.
  */
-public class DashboardController implements Initializable, MainController.ChildController {
+public class DashboardController implements Initializable, MainController.ControladorSecundario {
 
-    @FXML private Label lblBienvenida, lblFecha;
-    @FXML private Label statSaldo, statIngresos, statGastos, statAhorro;
-    @FXML private Label subIngresos, subGastos;
-    @FXML private Canvas donutCanvas, barCanvas;
-    @FXML private VBox   donutLegend, txList;
+    @FXML private Label EtiquetaSaludo;
+    @FXML private Label EtiquetaDate;
+    @FXML private Label estadisticaSaldo;
+    @FXML private Label estadisIngreso;
+    @FXML private Label estadisticaGasto;
+    @FXML private Label estadisAhorro;
+    @FXML private Label etiquetaIngresos;
+    @FXML private Label etiquetaGastos;
+    @FXML private Canvas donut;
+    @FXML private Canvas diaBarras;
+    @FXML private VBox   donutTexto;
+    @FXML private VBox   txList;
     @FXML private HBox   objetivosBox;
 
-    private final MovimientoDAO movDAO = new MovimientoDAO();
-    private final ObjetivoDAO   objDAO = new ObjetivoDAO();
+    private final MovimientoDAO     movDAO           = new MovimientoDAO();
+    private final ObjetivoDAO       objetivoDAO      = new ObjetivoDAO();
+    private final DashboardService  dashboardService = new DashboardService();
+    private final ObjetivoService   objetivoService  = new ObjetivoService();
+    private final DashboardRenderer renderer         = new DashboardRenderer();
+
+    private static final String[] COLORES_DONUT = {
+        "#1D9E75", "#BA7517", "#185FA5", "#8B5CF6", "#D85A30", "#6B6A65"
+    };
+
     private MainController main;
 
     @Override
-    public void setMain(MainController main) { this.main = main; }
+    public void setMain(MainController main) {
+        this.main = main;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        var u = Session.getInstance().getUsuarioActual();
-        lblBienvenida.setText("Hola, " + u.getNombre().split(" ")[0] + " 👋");
-        lblFecha.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy", new Locale("es"))));
-
-        LocalDate now = LocalDate.now();
-        List<Movimiento> movimientosMesActual = movDAO.obtenerMovimientosPorMes(u.getId(), now.getYear(), now.getMonthValue());
-
-        double ingresos = movimientosMesActual.stream().filter(Movimiento::isIngreso).mapToDouble(Movimiento::getCantidad).sum();
-        double gastos   = movimientosMesActual.stream().filter(m -> !m.isIngreso()).mapToDouble(Movimiento::getCantidad).sum();
-        double saldo    = ingresos - gastos;
-        double tasa     = ingresos > 0 ? (saldo / ingresos) * 100 : 0;
-
-        statSaldo.setText(fmt(saldo) + "€");
-        statSaldo.getStyleClass().removeAll("stat-up","stat-down");
-        statSaldo.getStyleClass().add(saldo >= 0 ? "stat-up" : "stat-down");
-        statIngresos.setText("+" + fmt(ingresos) + "€");
-        subIngresos.setText("este mes");
-        statGastos.setText("-" + fmt(gastos) + "€");
-        subGastos.setText("este mes");
-        statAhorro.setText(String.format("%.0f%%", tasa));
-        statAhorro.getStyleClass().add(tasa >= 20 ? "stat-up" : tasa >= 0 ? "stat-amber" : "stat-down");
-
-        dibujarGraficoDonutGastos(movimientosMesActual);
-        dibujarGraficoBarrasMensual(u.getId(), now);
-        mostrarTransaccionesRecientes(movDAO.obtenerUltimosMovimientos(u.getId(), 5));
-        mostrarTarjetasObjetivosPendientes(objDAO.obtenerObjetivosDeUsuario(u.getId()));
+        Session sesionDashboard = Session.getInstance();
+        Usuario usuario = sesionDashboard.getUsuarioActual();
+        enseniarSaludo(usuario);
+        mostrarFecha();
+        cargarMensual(usuario);
+        CargarTransacciones(usuario);
+        cargarObjetivos(usuario);
     }
 
-    // ── Gráfico donut: distribución de gastos por categoría ──────────────
-    private void dibujarGraficoDonutGastos(List<Movimiento> movs) {
-        Map<String, Double> cats = movs.stream()
-            .filter(m -> !m.isIngreso())
-            .collect(Collectors.groupingBy(
-                m -> m.getCategoriaNombre() != null ? m.getCategoriaNombre() : "Otro",
-                Collectors.summingDouble(Movimiento::getCantidad)));
 
-        double total = cats.values().stream().mapToDouble(Double::doubleValue).sum();
-        if (total == 0) return;
+    private void enseniarSaludo(Usuario usuario) {
+        String nombreCompleto = usuario.getNombre();
+        String[] partesNombre = nombreCompleto.split(" ");
+        String primerNombre = partesNombre[0];
+        String textoBienvenida = "Hola, " + primerNombre + " 👋";
+        EtiquetaSaludo.setText(textoBienvenida);
+    }
 
-        String[] colors = {"#1D9E75","#BA7517","#185FA5","#8B5CF6","#D85A30","#6B6A65"};
-        GraphicsContext gc = donutCanvas.getGraphicsContext2D();
+    private void mostrarFecha() {
+        Locale localEspanol = new Locale("es");
+        String patronFecha = "EEEE, d 'de' MMMM 'de' yyyy";
+        DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern(patronFecha, localEspanol);
+        LocalDate hoy = LocalDate.now();
+        String fechaFormateada = hoy.format(formatoFecha);
+        EtiquetaDate.setText(fechaFormateada);
+    }
+
+    private void cargarMensual(Usuario usuario) {
+        LocalDate hoy = LocalDate.now();
+        int anioActual = hoy.getYear();
+        int mesActual = hoy.getMonthValue();
+        int idUsuario = usuario.getId();
+        List<Movimiento> movimientosMes = movDAO.obtenerMovimientosMes(idUsuario, anioActual, mesActual);
+
+        double ingresos = dashboardService.calcularTotalIngreso(movimientosMes);
+        double gastos   = movDAO.obtenerTotalPorTipoYMes(idUsuario, anioActual, mesActual, "gasto");
+        double saldo    = ingresos - gastos;
+        double tasa     = dashboardService.calcularTasaAhorro(ingresos, saldo);
+
+        actualizarEtiquetas(ingresos, gastos, saldo, tasa);
+        crearDonut(movimientosMes);
+        int idUsuarioBarras = usuario.getId();
+        hacerBarras(idUsuarioBarras, hoy);
+    }
+
+    private void actualizarEtiquetas(double ingresos, double gastos, double saldo, double tasa) {
+        String saldoFormateadoSinSimbolo = Formateador.moneda(saldo);
+        String saldoFormateado = saldoFormateadoSinSimbolo + "€";
+        estadisticaSaldo.setText(saldoFormateado);
+        estadisticaSaldo.getStyleClass().removeAll("stat-up", "stat-down");
+        if (saldo >= 0) {
+            estadisticaSaldo.getStyleClass().add("stat-up");
+        } else {
+            estadisticaSaldo.getStyleClass().add("stat-down");
+        }
+
+        String ingresosFormateados = Formateador.moneda(ingresos);
+        String textoIngresos = "+" + ingresosFormateados + "€";
+        estadisIngreso.setText(textoIngresos);
+        etiquetaIngresos.setText("este mes");
+        String gastosFormateados = Formateador.moneda(gastos);
+        String textoGastos = "-" + gastosFormateados + "€";
+        estadisticaGasto.setText(textoGastos);
+        etiquetaGastos.setText("este mes");
+        String tasaFormateada = Formateador.porcentaje(tasa);
+        estadisAhorro.setText(tasaFormateada);
+
+        estadisAhorro.getStyleClass().removeAll("stat-up", "stat-amber", "stat-down");
+        if (tasa >= 20) {
+            estadisAhorro.getStyleClass().add("stat-up");
+        } else if (tasa >= 0) {
+            estadisAhorro.getStyleClass().add("stat-amber");
+        } else {
+            estadisAhorro.getStyleClass().add("stat-down");
+        }
+    }
+
+    private void CargarTransacciones(Usuario usuario) {
+        int idUsuario = usuario.getId();
+        List<Movimiento> ultimos = movDAO.obtenerUltimosMovimientos(idUsuario, 5);
+        txList.getChildren().clear();
+
+        for (Movimiento m : ultimos) {
+            txList.getChildren().add(renderer.crearFilaTransaccion(m));
+        }
+
+        if (ultimos.isEmpty()) {
+            txList.getChildren().add(renderer.crearMensajeVacioTransacciones());
+        }
+    }
+
+    private void cargarObjetivos(Usuario usuario) {
+        int idUsuario = usuario.getId();
+        List<Objetivo> todos = objetivoDAO.obtenerObjetivosUsuario(idUsuario);
+        objetivosBox.getChildren().clear();
+        int mostrados = 0;
+        for (Objetivo obj : todos) {
+            if (mostrados >= 3) {
+                break;
+            }
+            if (!obj.iscompletado()) {
+                objetivosBox.getChildren().add(renderer.crearTarjetaObjetivo(obj));
+                mostrados++;
+            }
+        }
+    }
+    // Graficos
+
+    private void crearDonut(List<Movimiento> movimientos) {
+        Map<String, Double> gastosCategoria = dashboardService.agruparPorCategoria(movimientos);
+        double totalGastos = dashboardService.calcularGastos(gastosCategoria);
+
+        if (totalGastos == 0) {
+            return;
+        }
+
+        GraphicsContext gc = donut.getGraphicsContext2D();
         gc.clearRect(0, 0, 120, 120);
 
-        double startAngle = -90;
-        int ci = 0;
-        List<Map.Entry<String, Double>> sorted = cats.entrySet().stream()
-            .sorted(Map.Entry.<String,Double>comparingByValue().reversed()).toList();
+        hacerSectoresDonut(gc, gastosCategoria, totalGastos);
+        dibujarHuecoDonut(gc, totalGastos);
+        escribirLeyenda(gastosCategoria);
+    }
 
-        for (Map.Entry<String,Double> e : sorted) {
-            double arc = (e.getValue() / total) * 360;
-            gc.setFill(Color.web(colors[ci % colors.length]));
-            gc.fillArc(5, 5, 110, 110, startAngle, -arc, javafx.scene.shape.ArcType.ROUND);
-            startAngle -= arc;
-            ci++;
-        }
-        // Inner hole
-        boolean dark = Session.getInstance().isDarkMode();
-        gc.setFill(Color.web(dark ? "#131211" : "#F7F6F3"));
-        gc.fillOval(30, 30, 60, 60);
-        // Center text
-        gc.setFill(Color.web(dark ? "#EEECE7" : "#1A1916"));
-        gc.setFont(Font.font("System", FontWeight.BOLD, 14));
-        gc.fillText(fmt(total) + "€", 35, 57);
-        gc.setFont(Font.font("System", 9));
-        gc.setFill(Color.web(dark ? "#6B6A65" : "#A09F9B"));
-        gc.fillText("total", 48, 68);
+    private void hacerSectoresDonut(GraphicsContext gc, Map<String, Double> datos, double total) {
+        double anguloInicio = -90;
+        int indiceColor = 0;
 
-        // Legend
-        donutLegend.getChildren().clear();
-        ci = 0;
-        for (Map.Entry<String,Double> e : sorted) {
-            HBox row = new HBox(8);
-            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            Label dot = new Label("●");
-            dot.setStyle("-fx-text-fill:" + colors[ci % colors.length] + ";-fx-font-size:10px;");
-            Label name = new Label(e.getKey());
-            name.setStyle("-fx-font-size:12px;-fx-text-fill:-color-text;");
-            HBox.setHgrow(name, Priority.ALWAYS);
-            Label val = new Label(fmt(e.getValue()) + "€");
-            val.setStyle("-fx-font-size:12px;-fx-font-family:monospace;-fx-text-fill:-color-text;");
-            row.getChildren().addAll(dot, name, val);
-            donutLegend.getChildren().add(row);
-            ci++;
+        for (Map.Entry<String, Double> entrada : datos.entrySet()) {
+            double valorCategoria = entrada.getValue();
+            double proporcion = valorCategoria / total;
+            double arco = proporcion * 360;
+            int longitudArrayColores = COLORES_DONUT.length;
+            int indiceColorCiclico = indiceColor % longitudArrayColores;
+            String colorHex = COLORES_DONUT[indiceColorCiclico];
+            Color colorSector = Color.web(colorHex);
+            gc.setFill(colorSector);
+            double arcoNegativo = -arco;
+            gc.fillArc(5, 5, 110, 110, anguloInicio, arcoNegativo, javafx.scene.shape.ArcType.ROUND);
+            anguloInicio = anguloInicio - arco;
+            indiceColor++;
         }
     }
 
-    // ── Gráfico de barras: ingresos vs gastos últimos 6 meses ────────────
-    private void dibujarGraficoBarrasMensual(int uid, LocalDate now) {
-        GraphicsContext gc = barCanvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, 340, 120);
+    private void dibujarHuecoDonut(GraphicsContext gc, double totalGastos) {
+        Session sesionActual = Session.getInstance();
+        boolean modoOscuro = sesionActual.isDarkMode();
 
+        if (modoOscuro) {
+            Color colorFondoHuecoOscuro = Color.web("#131211");
+            gc.setFill(colorFondoHuecoOscuro);
+        } else {
+            Color colorFondoHuecoClaro = Color.web("#F7F6F3");
+            gc.setFill(colorFondoHuecoClaro);
+        }
+        gc.fillOval(30, 30, 60, 60);
+
+        if (modoOscuro) {
+            Color colorTextoTotalOscuro = Color.web("#EEECE7");
+            gc.setFill(colorTextoTotalOscuro);
+        } else {
+            Color colorTextoTotalClaro = Color.web("#1A1916");
+            gc.setFill(colorTextoTotalClaro);
+        }
+        Font fuenteTotal = Font.font("System", FontWeight.BOLD, 14);
+        gc.setFont(fuenteTotal);
+        String totalGastosFormateado = Formateador.moneda(totalGastos);
+        String textoTotalGastos = totalGastosFormateado + "€";
+        double xTextoGastos = 35;
+        double yTextoGastos = 57;
+        gc.fillText(textoTotalGastos, xTextoGastos, yTextoGastos);
+
+        Font fuenteSubtotal = Font.font("System", 9);
+        gc.setFont(fuenteSubtotal);
+        if (modoOscuro) {
+            Color colorSubtotalOscuro = Color.web("#6B6A65");
+            gc.setFill(colorSubtotalOscuro);
+        } else {
+            Color colorSubtotalClaro = Color.web("#A09F9B");
+            gc.setFill(colorSubtotalClaro);
+        }
+        gc.fillText("total", 48, 68);
+    }
+
+    private void escribirLeyenda(Map<String, Double> gastosCategoria) {
+        donutTexto.getChildren().clear();
+        int indiceColor = 0;
+
+        for (Map.Entry<String, Double> entrada : gastosCategoria.entrySet()) {
+            int longitudArrayColoresLeyenda = COLORES_DONUT.length;
+            int indiceColorCiclico = indiceColor % longitudArrayColoresLeyenda;
+            String color = COLORES_DONUT[indiceColorCiclico];
+            String nombreCategoria = entrada.getKey();
+            double valorCategoria = entrada.getValue();
+            HBox fila = renderer.crearFilaLeyendaDonut(nombreCategoria, valorCategoria, color);
+            donutTexto.getChildren().add(fila);
+            indiceColor++;
+        }
+    }
+
+    private void hacerBarras(int idUsuario, LocalDate hoy) {
+        String[] etiquetasMeses = {"Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"};
         String[] labels = new String[6];
-        double[] ing = new double[6];
-        double[] gast = new double[6];
-        String[] meses = {"Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"};
+        double[] serieIngresos = new double[6];
+        double[] serieGastos   = new double[6];
 
         for (int i = 5; i >= 0; i--) {
-            LocalDate d = now.minusMonths(i);
-            List<Movimiento> movs = movDAO.obtenerMovimientosPorMes(uid, d.getYear(), d.getMonthValue());
-            int idx = 5 - i;
-            labels[idx] = meses[d.getMonthValue() - 1];
-            ing[idx]  = movs.stream().filter(Movimiento::isIngreso).mapToDouble(Movimiento::getCantidad).sum();
-            gast[idx] = movs.stream().filter(m -> !m.isIngreso()).mapToDouble(Movimiento::getCantidad).sum();
+            LocalDate fechaMes = hoy.minusMonths(i);
+            int anioMes = fechaMes.getYear();
+            int numMes = fechaMes.getMonthValue();
+            List<Movimiento> movimientosMes = movDAO.obtenerMovimientosMes(idUsuario, anioMes, numMes);
+
+            int indice = 5 - i;
+            int indiceMesEnArray = numMes - 1;
+            labels[indice] = etiquetasMeses[indiceMesEnArray];
+            serieIngresos[indice] = dashboardService.calcularTotalIngreso(movimientosMes);
+            serieGastos[indice]   = dashboardService.calcularTotalGastosMes(movimientosMes);
         }
 
-        double maxVal = 0;
-        for (int i = 0; i < 6; i++) maxVal = Math.max(maxVal, Math.max(ing[i], gast[i]));
-        if (maxVal == 0) maxVal = 1000;
+        double valorMaximo = calcularMaximo(serieIngresos, serieGastos);
+        pintarBarras(serieIngresos, serieGastos, labels, valorMaximo);
+    }
 
-        double barW = 22, gap = 12, chartH = 90, startX = 20;
+    private double calcularMaximo(double[] ingresos, double[] gastos) {
+        double maximo = 0;
         for (int i = 0; i < 6; i++) {
-            double x = startX + i * (barW * 2 + gap + 4);
-            double hI = (ing[i]  / maxVal) * chartH;
-            double hG = (gast[i] / maxVal) * chartH;
+            if (ingresos[i] > maximo) {
+                maximo = ingresos[i];
+            }
+            if (gastos[i] > maximo) {
+                maximo = gastos[i];
+            }
+        }
+        if (maximo == 0) {
+            maximo = 1000;
+        }
+        return maximo;
+    }
 
-            gc.setFill(Color.web("#1D9E75", 0.85));
-            gc.fillRoundRect(x, chartH - hI, barW, hI, 4, 4);
+    private void pintarBarras(double[] ing, double[] gast, String[] labels, double maximo) {
+        GraphicsContext gc = diaBarras.getGraphicsContext2D();
+        gc.clearRect(0, 0, 340, 120);
 
-            gc.setFill(Color.web("#D85A30", 0.65));
-            gc.fillRoundRect(x + barW + 2, chartH - hG, barW, hG, 4, 4);
+        double anchoBarra  = 22;
+        double separacion  = 12;
+        double alturaMaxima = 90;
+        double inicioX     = 20;
 
-            gc.setFill(Color.web(Session.getInstance().isDarkMode() ? "#6B6A65" : "#A09F9B"));
-            gc.setFont(Font.font("System", 9));
-            gc.fillText(labels[i], x + 3, chartH + 14);
+        for (int i = 0; i < 6; i++) {
+            double anchoDosBarras = anchoBarra * 2;
+            double grupoPorMes = anchoDosBarras + separacion + 4;
+            double posX = inicioX + i * grupoPorMes;
+            double proporcionIngreso = ing[i] / maximo;
+            double alturaIngreso = proporcionIngreso * alturaMaxima;
+            double proporcionGasto = gast[i] / maximo;
+            double alturaGasto = proporcionGasto * alturaMaxima;
+
+            double yIngreso = alturaMaxima - alturaIngreso;
+            Color colorBarraIngreso = Color.web("#1D9E75", 0.85);
+            gc.setFill(colorBarraIngreso);
+            gc.fillRoundRect(posX, yIngreso, anchoBarra, alturaIngreso, 4, 4);
+
+            double xGasto = posX + anchoBarra + 2;
+            double yGasto = alturaMaxima - alturaGasto;
+            Color colorBarraGasto = Color.web("#D85A30", 0.65);
+            gc.setFill(colorBarraGasto);
+            gc.fillRoundRect(xGasto, yGasto, anchoBarra, alturaGasto, 4, 4);
+
+            Session sesionActual = Session.getInstance();
+            if (sesionActual.isDarkMode()) {
+                Color colorEtiquetaOscuro = Color.web("#6B6A65");
+                gc.setFill(colorEtiquetaOscuro);
+            } else {
+                Color colorEtiquetaClaro = Color.web("#A09F9B");
+                gc.setFill(colorEtiquetaClaro);
+            }
+            Font fuenteEtiqueta = Font.font("System", 9);
+            gc.setFont(fuenteEtiqueta);
+            double xEtiquetaDouble = posX + 3;
+            double yEtiquetaDouble = alturaMaxima + 14;
+            float xEtiqueta = (float) xEtiquetaDouble;
+            float yEtiqueta = (float) yEtiquetaDouble;
+            gc.fillText(labels[i], xEtiqueta, yEtiqueta);
         }
     }
 
-    // ── Lista de transacciones recientes en el panel ─────────────────────
-    private void mostrarTransaccionesRecientes(List<Movimiento> movs) {
-        txList.getChildren().clear();
-        for (Movimiento m : movs) {
-            HBox row = new HBox(12);
-            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            row.setPadding(new Insets(10, 12, 10, 12));
-            row.setStyle("-fx-border-color: transparent transparent -color-border transparent;-fx-border-width:0 0 1 0;");
-
-            Label icon = new Label(m.getCategoriaEmoji() != null ? m.getCategoriaEmoji() : "💳");
-            icon.setStyle("-fx-font-size:18px;-fx-min-width:36px;-fx-min-height:36px;" +
-                "-fx-background-radius:10;-fx-alignment:center;" +
-                (m.isIngreso() ? "-fx-background-color:rgba(29,158,117,0.15);" : "-fx-background-color:-color-surface2;"));
-
-            VBox info = new VBox(2);
-            Label name = new Label(m.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
-            Label cat  = new Label(m.getCategoriaDisplay()); cat.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
-            info.getChildren().addAll(name, cat);
-            HBox.setHgrow(info, Priority.ALWAYS);
-
-            Label fecha = new Label(m.getFecha() != null ? m.getFecha().format(DateTimeFormatter.ofPattern("d MMM", new Locale("es"))) : "");
-            fecha.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
-
-            Label amt = new Label((m.isIngreso() ? "+" : "-") + fmt(m.getCantidad()) + "€");
-            amt.setStyle("-fx-font-family:monospace;-fx-font-size:13px;-fx-font-weight:bold;" +
-                "-fx-text-fill:" + (m.isIngreso() ? "#1D9E75" : "#D85A30") + ";");
-
-            row.getChildren().addAll(icon, info, fecha, amt);
-            txList.getChildren().add(row);
-        }
-        if (movs.isEmpty()) {
-            Label empty = new Label("Sin movimientos este mes");
-            empty.setStyle("-fx-text-fill:-color-text3;-fx-padding:20px;");
-            txList.getChildren().add(empty);
+    @FXML
+    void irGastos() {
+        if (main != null) {
+            main.showGastos();
         }
     }
 
-    // ── Tarjetas de objetivos de ahorro pendientes ───────────────────────
-    private void mostrarTarjetasObjetivosPendientes(List<Objetivo> objs) {
-        objetivosBox.getChildren().clear();
-        for (Objetivo o : objs.stream().filter(ob -> !ob.isCompletado()).limit(3).toList()) {
-            VBox card = new VBox(8);
-            card.setStyle("-fx-background-color:-color-surface;-fx-background-radius:14;-fx-border-radius:14;" +
-                "-fx-border-color:-color-border;-fx-border-width:1;-fx-padding:14;");
-            HBox.setHgrow(card, Priority.ALWAYS);
-
-            Label emoji = new Label(o.getEmoji() != null ? o.getEmoji() : "🎯");
-            emoji.setStyle("-fx-font-size:22px;");
-            Label name = new Label(o.getNombre()); name.setStyle("-fx-font-weight:500;-fx-font-size:13px;-fx-text-fill:-color-text;");
-
-            ProgressBar pb = new ProgressBar(o.getPorcentajeProgreso() / 100.0);
-            pb.setMaxWidth(Double.MAX_VALUE);
-            pb.setStyle("-fx-accent:#1D9E75;-fx-pref-height:8px;");
-
-            Label pct = new Label(String.format("%.0f%% · %s€ de %s€",
-                o.getPorcentajeProgreso(), fmt(o.getActual()), fmt(o.getObjetivo())));
-            pct.setStyle("-fx-font-size:11px;-fx-text-fill:-color-text3;");
-
-            card.getChildren().addAll(emoji, name, pb, pct);
-            objetivosBox.getChildren().add(card);
+    @FXML
+    void irObjetivos() {
+        if (main != null) {
+            main.showObjetivos();
         }
     }
 
-    @FXML void irGastos()    { if (main != null) main.showGastos(); }
-    @FXML void irObjetivos() { if (main != null) main.showObjetivos(); }
-    @FXML void irHistorial() { if (main != null) main.showHistorial(); }
-
-    private String fmt(double v) { return String.format("%,.0f", v).replace(",", "."); }
+    @FXML
+    void irHistorial() {
+        if (main != null) {
+            main.showHistorial();
+        }
+    }
 }

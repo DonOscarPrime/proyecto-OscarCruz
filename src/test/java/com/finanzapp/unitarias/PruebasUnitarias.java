@@ -3,14 +3,6 @@ package com.finanzapp.unitarias;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * PRUEBAS UNITARIAS de Fox Wallet — Lógica de negocio pura (sin base de datos).
- * <p>
- * Verifica el correcto funcionamiento de los cálculos financieros internos de la app:
- * tramos IRPF para el calculador de renta, balance ingresos/gastos,
- * y progreso de objetivos de ahorro.
- * No requiere conexión a MySQL ni contexto JavaFX.
- */
 @DisplayName("Pruebas Unitarias")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PruebasUnitarias {

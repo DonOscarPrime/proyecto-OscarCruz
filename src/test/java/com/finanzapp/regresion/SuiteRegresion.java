@@ -13,9 +13,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 
 /**
  *  SUITE DE REGRESIÓN
- *  Ejecuta TODOS los tests del proyecto en un único pase.
- *  Se lanza antes de cada entrega o despliegue para garantizar
- *  que ningún cambio ha roto funcionalidad existente.
+ *  Su funcuón es ejecutar todos los test del proyecto de manera simultaneaj
  */
 @Suite
 @SuiteDisplayName("Suite de Regresión — Fox Wallet completo")
@@ -32,6 +30,5 @@ public class SuiteRegresion {
     /*
      * Esta clase no contiene tests propios.
      * Su única función es agrupar y ordenar las suites existentes.
-     * JUnit Platform la detecta automáticamente gracias a @Suite.
      */
 }

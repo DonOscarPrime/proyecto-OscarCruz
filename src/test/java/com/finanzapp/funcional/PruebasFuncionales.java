@@ -17,12 +17,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * PRUEBAS FUNCIONALES de Fox Wallet — Verifica los requisitos funcionales del cliente.
- * <p>
- * Cubre los flujos principales de la aplicación contra la base de datos real:
- * registro de movimientos (gastos e ingresos), creación y actualización de
- * objetivos de ahorro mediante el procedimiento almacenado MySQL, y cálculo
- * de estadísticas mensuales. Requiere conexión activa a MySQL; si no está
- * disponible, los tests se saltan con {@code assumeTrue}.
  */
 @DisplayName("Pruebas Funcionales")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -62,7 +56,7 @@ public class PruebasFuncionales {
         assumeTrue(dbOk, "BD no disponible");
         Usuario u = new Usuario();
         u.setNombre("Test Funcional"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-        assertTrue(usuarioDAO.registrarNuevoUsuario(u, "pass123"));
+        assertTrue(usuarioDAO.registrarUsuario(u, "pass123"));
         uid = u.getId();
         assertTrue(uid > 0);
         assertNotNull(usuarioDAO.autenticarUsuario(EMAIL, "pass123"));
@@ -78,7 +72,7 @@ public class PruebasFuncionales {
         m.setUsuarioId(uid); m.setTipo("ingreso"); m.setNombre("Nómina");
         m.setCantidad(2000.0); m.setCategoriaId(1); m.setFecha(hoy);
         assertTrue(movimientoDAO.registrarMovimiento(m));
-        assertFalse(movimientoDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue()).isEmpty());
+        assertFalse(movimientoDAO.obtenerMovimientosMes(uid, hoy.getYear(), hoy.getMonthValue()).isEmpty());
     }
 
     @Test @Order(3)
@@ -89,6 +83,6 @@ public class PruebasFuncionales {
         o.setUsuarioId(uid); o.setNombre("Vacaciones"); o.setObjetivo(1000.0);
         o.setActual(0.0); o.setEmoji("🏖");
         assertTrue(objetivoDAO.crearObjetivo(o));
-        assertTrue(objetivoDAO.registrarAporteObjetivo(o.getId(), 300.0));
+        assertTrue(objetivoDAO.registrarAporte(o.getId(), 300.0));
     }
 }

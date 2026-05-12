@@ -9,29 +9,28 @@
 
     <HBox alignment="CENTER_LEFT" spacing="12">
         <Label text="Historial de movimientos" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-        <ComboBox fx:id="cmbMes"  prefWidth="130" styleClass="form-input"/>
-        <ComboBox fx:id="cmbAnio" prefWidth="90"  styleClass="form-input"/>
-        <ComboBox fx:id="cmbTipo" prefWidth="110" styleClass="form-input"/>
-        <TextField fx:id="txtBuscar" promptText="🔍 Buscar..." styleClass="form-input" prefWidth="150"/>
+        <ComboBox fx:id="seleccionarMes"  prefWidth="130" styleClass="form-input"/>
+        <ComboBox fx:id="seleccionarAnio" prefWidth="90"  styleClass="form-input"/>
+        <ComboBox fx:id="seleccionarTipo" prefWidth="110" styleClass="form-input"/>
+        <TextField fx:id="textBusc" promptText="🔍 Buscar..." styleClass="form-input" prefWidth="150"/>
     </HBox>
 
-    <!-- Resumen mes -->
     <HBox spacing="12">
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Ingresos"    styleClass="stat-label"/>
-            <Label fx:id="statIng"   styleClass="stat-value stat-up"/>
+            <Label text="Ingresos"          styleClass="stat-label"/>
+            <Label fx:id="estadisticaIng"   styleClass="stat-value stat-up"/>
         </VBox>
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Gastos"      styleClass="stat-label"/>
-            <Label fx:id="statGast"  styleClass="stat-value stat-down"/>
+            <Label text="Gastos"            styleClass="stat-label"/>
+            <Label fx:id="estadisticaGast"  styleClass="stat-value stat-down"/>
         </VBox>
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Balance"     styleClass="stat-label"/>
-            <Label fx:id="statBal"   styleClass="stat-value"/>
+            <Label text="Balance"           styleClass="stat-label"/>
+            <Label fx:id="estadisticaBalan" styleClass="stat-value"/>
         </VBox>
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Movimientos" styleClass="stat-label"/>
-            <Label fx:id="statCount" styleClass="stat-value"/>
+            <Label text="Movimientos"       styleClass="stat-label"/>
+            <Label fx:id="estadisticaCount" styleClass="stat-value"/>
         </VBox>
     </HBox>
 

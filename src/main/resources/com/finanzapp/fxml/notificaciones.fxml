@@ -7,10 +7,7 @@
       fx:controller="com.finanzapp.controller.NotificacionesController"
       styleClass="page" spacing="16">
 
-    <HBox alignment="CENTER_LEFT" spacing="12">
-        <Label text="Notificaciones" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-        <Button text="Marcar todas como leídas" styleClass="btn-ghost" onAction="#marcarLeidas"/>
-    </HBox>
+    <Label text="Notificaciones" styleClass="page-title"/>
 
     <VBox styleClass="card" spacing="0" fx:id="notifList"/>
 

@@ -14,24 +14,23 @@
         <Button text="Cerrar sesión" styleClass="btn-danger" onAction="#cerrarSesion"/>
     </HBox>
 
-    <!-- Avatar + resumen -->
     <HBox styleClass="card" spacing="24" alignment="CENTER_LEFT">
         <Label fx:id="avatarLabel" styleClass="avatar-big"/>
         <VBox spacing="6" HBox.hgrow="ALWAYS">
-            <Label fx:id="lblNombre"  style="-fx-font-size:20px;-fx-font-weight:500;"/>
-            <Label fx:id="lblEmail"   styleClass="subtitle"/>
+            <Label fx:id="textoNombre"    style="-fx-font-size:20px;-fx-font-weight:500;"/>
+            <Label fx:id="textoEmail"     styleClass="subtitle"/>
             <HBox spacing="8">
-                <Label fx:id="lblSituacion" styleClass="tag-green"/>
-                <Label fx:id="lblComunidad" styleClass="tag-blue"/>
+                <Label fx:id="textoSituacion"  styleClass="tag-green"/>
+                <Label fx:id="textoComunidad"  styleClass="tag-blue"/>
             </HBox>
         </VBox>
         <HBox spacing="24">
             <VBox alignment="CENTER" spacing="2">
-                <Label fx:id="statMovs"   style="-fx-font-size:22px;-fx-font-weight:500;"/>
+                <Label fx:id="estadisticasMovimiento" style="-fx-font-size:22px;-fx-font-weight:500;"/>
                 <Label text="movimientos" styleClass="stat-sub"/>
             </VBox>
             <VBox alignment="CENTER" spacing="2">
-                <Label fx:id="statObjs"   style="-fx-font-size:22px;-fx-font-weight:500;-fx-text-fill:#185FA5;"/>
+                <Label fx:id="estadisObjetivos" style="-fx-font-size:22px;-fx-font-weight:500;-fx-text-fill:#185FA5;"/>
                 <Label text="objetivos activos" styleClass="stat-sub"/>
             </VBox>
         </HBox>
@@ -39,17 +38,16 @@
 
     <HBox spacing="16">
 
-        <!-- Datos personales -->
+        <!--Datos personales-->
         <VBox spacing="12" HBox.hgrow="ALWAYS">
 
             <VBox styleClass="card" spacing="10">
                 <HBox alignment="CENTER_LEFT">
                     <Label text="DATOS PERSONALES" styleClass="card-title" HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="btnEditToggle" text="✏ Editar" styleClass="btn-ghost"
-                            style="-fx-font-size:12px;" onAction="#toggleEditar"/>
+                    <Button fx:id="botonToggle" text="✏ Editar" styleClass="btn-ghost"
+                            style="-fx-font-size:12px;" onAction="#rellenaDatos"/>
                 </HBox>
 
-                <!-- Vista -->
                 <VBox fx:id="vistaPanel" spacing="0">
                     <HBox styleClass="data-row"><Label text="Nombre" styleClass="data-key"/><Label fx:id="vNombre"   styleClass="data-val"/></HBox>
                     <HBox styleClass="data-row"><Label text="Email"  styleClass="data-key"/><Label fx:id="vEmail"    styleClass="data-val"/></HBox>
@@ -58,7 +56,6 @@
                     <HBox styleClass="data-row" style="-fx-border-width:0;"><Label text="Comunidad" styleClass="data-key"/><Label fx:id="vComunidad" styleClass="data-val"/></HBox>
                 </VBox>
 
-                <!-- Edición -->
                 <VBox fx:id="editPanel" spacing="8" visible="false" managed="false">
                     <Label text="Nombre completo" styleClass="form-label"/>
                     <TextField fx:id="eNombre"   styleClass="form-input"/>
@@ -70,16 +67,15 @@
                     <DatePicker fx:id="eFechaNac" maxWidth="Infinity" styleClass="form-input"/>
                     <Label text="Comunidad Autónoma" styleClass="form-label"/>
                     <ComboBox fx:id="eComunidad"  maxWidth="Infinity" styleClass="form-input"/>
-                    <Label fx:id="lblPerfilMsg"  styleClass="info-label"  wrapText="true"/>
-                    <Label fx:id="lblPerfilErr"  styleClass="error-label" wrapText="true"/>
+                    <Label fx:id="lblPerfilMensaje" styleClass="info-label"  wrapText="true"/>
+                    <Label fx:id="lblPerfilErr"     styleClass="error-label" wrapText="true"/>
                     <HBox spacing="8">
                         <Button text="Guardar cambios" styleClass="btn-primary" onAction="#guardarPerfil"/>
-                        <Button text="Cancelar"        styleClass="btn-ghost"   onAction="#toggleEditar"/>
+                        <Button text="Cancelar"        styleClass="btn-ghost"   onAction="#rellenaDatos"/>
                     </HBox>
                 </VBox>
             </VBox>
 
-            <!-- Seguridad -->
             <VBox styleClass="card" spacing="10">
                 <Label text="SEGURIDAD DE LA CUENTA" styleClass="card-title"/>
                 <Label text="Contraseña actual" styleClass="form-label"/>
@@ -94,7 +90,6 @@
             </VBox>
         </VBox>
 
-        <!-- Situación financiera -->
         <VBox spacing="12" HBox.hgrow="ALWAYS">
             <VBox styleClass="card" spacing="10">
                 <Label text="SITUACIÓN FINANCIERA" styleClass="card-title"/>

@@ -12,13 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * Pruebas de integración de {@link MovimientoDAO} de Fox Wallet.
- * <p>
- * Verifica contra la base de datos real que el DAO puede registrar un nuevo
- * movimiento (gasto), recuperarlo filtrando por mes y eliminarlo correctamente.
- * Requiere conexión activa a MySQL; si no está disponible se saltan con {@code assumeTrue}.
- */
+
 @DisplayName("MovimientoDAO — pruebas de integración")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MovimientoDAOTest {
@@ -37,7 +31,7 @@ public class MovimientoDAOTest {
         if (dbOk) {
             Usuario u = new Usuario();
             u.setNombre("JUnit Mov"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-            if (uDao.registrarNuevoUsuario(u, "TestPass1234!")) uid = u.getId();
+            if (uDao.registrarUsuario(u, "TestPass1234!")) uid = u.getId();
         }
     }
 
@@ -66,7 +60,7 @@ public class MovimientoDAOTest {
     void testListar() {
         assumeTrue(dbOk && uid > 0);
         LocalDate hoy = LocalDate.now();
-        List<Movimiento> lista = movDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue());
+        List<Movimiento> lista = movDAO.obtenerMovimientosMes(uid, hoy.getYear(), hoy.getMonthValue());
         assertFalse(lista.isEmpty());
         lista.forEach(m -> assertEquals(hoy.getMonthValue(), m.getFecha().getMonthValue()));
     }

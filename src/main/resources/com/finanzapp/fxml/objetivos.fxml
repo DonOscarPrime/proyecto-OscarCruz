@@ -12,7 +12,7 @@
         <Button text="+ Nuevo objetivo" styleClass="btn-primary" onAction="#toggleForm"/>
     </HBox>
 
-    <!-- Formulario nuevo objetivo -->
+
     <VBox fx:id="formPanel" styleClass="card" spacing="10" visible="false" managed="false">
         <Label text="NUEVO OBJETIVO" styleClass="card-title"/>
         <HBox spacing="10">
@@ -36,17 +36,16 @@
             </VBox>
             <VBox spacing="6" HBox.hgrow="ALWAYS">
                 <Label text="Fecha límite (opcional)" styleClass="form-label"/>
-                <DatePicker fx:id="dateLimite" styleClass="form-input"/>
+                <DatePicker fx:id="FechaLimite" styleClass="form-input"/>
             </VBox>
         </HBox>
-        <Label fx:id="lblError" styleClass="error-label" wrapText="true"/>
+        <Label fx:id="txtError" styleClass="error-label" wrapText="true"/>
         <HBox spacing="8">
             <Button text="Guardar objetivo" styleClass="btn-primary" onAction="#guardar"/>
             <Button text="Cancelar"         styleClass="btn-ghost"   onAction="#toggleForm"/>
         </HBox>
     </VBox>
 
-    <!-- Grid de objetivos -->
     <FlowPane fx:id="objetivosGrid" hgap="16" vgap="16"/>
 
 </VBox>

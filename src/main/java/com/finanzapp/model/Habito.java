@@ -1,79 +1,129 @@
 package com.finanzapp.model;
 
 /**
- * Representa un hábito de gasto recurrente del usuario en Fox Wallet.
- * <p>
- * Un hábito es cualquier consumo periódico (café diario, gimnasio, Netflix…)
- * que el simulador de ahorro usa para calcular cuánto podría ahorrar
- * el usuario si redujera su frecuencia de consumo hacia la frecuencia objetivo.
- * El factor 4,3 convierte frecuencias semanales a mensuales.
+ * Representa un hábito de gasto recurrente.
  */
 public class Habito {
+
     private int id;
     private int usuarioId;
     private String emoji;
     private String nombre;
     private int frecuenciaActual;
     private int frecuenciaObj;
-    private String unidad;   // "semana" | "mes"
+    private String unidad;
     private double coste;
     private String descripcion;
 
-    public int    getId()                   { return id; }
-    public void   setId(int id)            { this.id = id; }
-    public int    getUsuarioId()            { return usuarioId; }
-    public void   setUsuarioId(int u)      { this.usuarioId = u; }
-    public String getEmoji()               { return emoji; }
-    public void   setEmoji(String e)       { this.emoji = e; }
-    public String getNombre()              { return nombre; }
-    public void   setNombre(String n)      { this.nombre = n; }
-    public int    getFrecuenciaActual()    { return frecuenciaActual; }
-    public void   setFrecuenciaActual(int f){ this.frecuenciaActual = f; }
-    public int    getFrecuenciaObj()       { return frecuenciaObj; }
-    public void   setFrecuenciaObj(int f)  { this.frecuenciaObj = f; }
-    public String getUnidad()              { return unidad; }
-    public void   setUnidad(String u)      { this.unidad = u; }
-    public double getCoste()               { return coste; }
-    public void   setCoste(double c)       { this.coste = c; }
-    public String getDescripcion()         { return descripcion; }
-    public void   setDescripcion(String d) { this.descripcion = d; }
+    public int getId() {
+        return id;
+    }
 
-    /**
-     * Calcula el gasto mensual real del usuario para este hábito,
-     * según su frecuencia de consumo actual.
-     * Las frecuencias semanales se convierten a mensuales multiplicando por 4,3.
-     */
-    public double getGastoMensualActual() {
-        double factorSemanalAMensual = "semana".equals(unidad) ? 4.3 : 1.0;
-        return frecuenciaActual * coste * factorSemanalAMensual;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(int usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public int getFrecuenciaActual() {
+        return frecuenciaActual;
+    }
+
+    public void setFrecuenciaActual(int frecuenciaActual) {
+        this.frecuenciaActual = frecuenciaActual;
+    }
+
+    public int getFrecuenciaObj() {
+        return frecuenciaObj;
+    }
+
+    public void setFrecuenciaObj(int frecuenciaObj) {
+        this.frecuenciaObj = frecuenciaObj;
+    }
+
+    public String getUnidad() {
+        return unidad;
+    }
+
+    public void setUnidad(String unidad) {
+        this.unidad = unidad;
+    }
+
+    public double getCoste() {
+        return coste;
+    }
+
+    public void setCoste(double coste) {
+        this.coste = coste;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
     /**
-     * Calcula el gasto mensual que tendría el usuario si alcanzara
-     * la frecuencia objetivo marcada en el simulador de ahorro.
+     * Calcula el gasto mensual
      */
-    public double getGastoMensualObjetivo() {
-        double factorSemanalAMensual = "semana".equals(unidad) ? 4.3 : 1.0;
-        return frecuenciaObj * coste * factorSemanalAMensual;
+    public double getGastoActual() {
+        double factor;
+        if ("semana".equals(unidad)) {
+            factor = 4.3;
+        } else {
+            factor = 1.0;
+        }
+        double vecesAlMes = frecuenciaActual * factor;
+        double gastoMensual = vecesAlMes * coste;
+        return gastoMensual;
     }
 
     /**
-     * Calcula el ahorro mensual potencial si el usuario reduce este hábito
-     * hasta la frecuencia objetivo. Nunca devuelve valores negativos.
+     * Calcula el gasto mensual en el supuesto caso de lograr el objetivo
      */
-    public double getAhorroMensualPotencial() {
-        return Math.max(0, getGastoMensualActual() - getGastoMensualObjetivo());
+    public double getGastoObjetivo() {
+        double factor;
+        if ("semana".equals(unidad)) {
+            factor = 4.3;
+        } else {
+            factor = 1.0;
+        }
+        double vecesAlMesObjetivo = frecuenciaObj * factor;
+        double gastoMensualObjetivo = vecesAlMesObjetivo * coste;
+        return gastoMensualObjetivo;
     }
 
-    /**
-     * @deprecated Usar {@link #getGastoMensualObjetivo()} para mayor claridad.
-     */
-    @Deprecated
-    public double getGastoMensualObj() { return getGastoMensualObjetivo(); }
+    public double getAhorroPotencial() {
+        double resto = getGastoActual() - getGastoObjetivo();
+        if (resto < 0) {
+            return 0;
+        } else {
+            return resto;
+        }
+    }
 
-    /**
-     * @deprecated Usar {@link #getAhorroMensualPotencial()} para mayor claridad.
-     */
-    @Deprecated
-    public double getAhorroMensual() { return getAhorroMensualPotencial(); }
 }

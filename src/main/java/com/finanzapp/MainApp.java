@@ -18,27 +18,40 @@ public class MainApp extends Application {
         stage.setTitle("Fox Wallet");
         stage.setMinWidth(1000);
         stage.setMinHeight(680);
-        navigateTo("login");
+        irA("login");
         stage.show();
     }
 
     /** Cambia la vista cargando un FXML. */
-    public static void navigateTo(String fxmlName) {
+    public static void irA(String fxmlName) {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                MainApp.class.getResource("/com/finanzapp/fxml/" + fxmlName + ".fxml"));
-            Scene scene = new Scene(loader.load());
-            scene.getStylesheets().add(
-                MainApp.class.getResource("/com/finanzapp/css/styles.css").toExternalForm());
+            String prefijoCarpetaFxml = "/com/finanzapp/fxml/";
+            String sufijoCarpetaFxml = ".fxml";
+            String rutaFxml = prefijoCarpetaFxml + fxmlName + sufijoCarpetaFxml;
+            FXMLLoader cargar = new FXMLLoader(MainApp.class.getResource(rutaFxml));
+
+            javafx.scene.Parent raiz = cargar.load();
+            Scene scene = new Scene(raiz);
+
+            String rutaCss = "/com/finanzapp/css/styles.css";
+            java.net.URL recursosCss = MainApp.class.getResource(rutaCss);
+            String urlCss = recursosCss.toExternalForm();
+            scene.getStylesheets().add(urlCss);
+
             primaryStage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /** Mantiene compatibilidad con llamadas previas. */
+    public static void navigateTo(String fxmlName) {
+        irA(fxmlName);
+    }
+
     @Override
     public void stop() {
-        DatabaseConnection.closeConnection();
+        DatabaseConnection.cerrarConexion();
     }
 
     public static void main(String[] args) {

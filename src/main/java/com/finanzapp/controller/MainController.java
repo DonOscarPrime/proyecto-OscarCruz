@@ -1,7 +1,7 @@
 package com.finanzapp.controller;
 
-import com.finanzapp.dao.NotificacionDAO;
 import com.finanzapp.dao.UsuarioDAO;
+import com.finanzapp.model.Usuario;
 import com.finanzapp.util.Session;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,63 +17,150 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 /**
- * Controlador raíz de la vista principal de Fox Wallet.
- * <p>
- * Gestiona la barra de navegación lateral, la carga dinámica de paneles
- * en el área de contenido central, el toggle de tema claro/oscuro y el
- * badge de notificaciones no leídas. Actúa como hub de navegación entre
- * todos los módulos de la aplicación.
+ * Controlador raíz de la vista principal.
+ * Gestiona la barra de navegación, la carga dinámica de paneles ,
+ * el toggle de tema claro/oscuro.
  */
 public class MainController implements Initializable {
 
-    @FXML private BorderPane rootPane;
-    @FXML private StackPane  contentArea;
-    @FXML private Button navDashboard, navGastos, navSimulador,
-                         navObjetivos, navHistorial, navRenta, notifBtn, avatarBtn, themeBtn;
-    @FXML private Label  notifBadge;
+    @FXML private BorderPane panelRoot;
+    @FXML private StackPane  areaDeContenido;
+    @FXML private Button navegaDashboard;
+    @FXML private Button navegaGastos;
+    @FXML private Button navegaSimulador;
+    @FXML private Button navegaObjetivos;
+    @FXML private Button navegaHistorial;
+    @FXML private Button navegaRenta;
+    @FXML private Button notBtn;
+    @FXML private Button avatarBtn;
+    @FXML private Button temaBtn;
 
-    private final NotificacionDAO notifDAO  = new NotificacionDAO();
-    private final UsuarioDAO      usuarioDAO = new UsuarioDAO();
+    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Iniciales del usuario en el botón de avatar
-        String ini = Session.getInstance().getUsuarioActual().getIniciales();
-        avatarBtn.setText(ini);
+        Session sesionInit = Session.getInstance();
+        Usuario usuarioInit = sesionInit.getUsuarioActual();
+        String iniciales = usuarioInit.getIniciales();
+        avatarBtn.setText(iniciales);
 
-        // Restaurar tema guardado del usuario
-        String temaGuardado = Session.getInstance().getUsuarioActual().getTema();
-        boolean dark = "oscuro".equals(temaGuardado);
-        Session.getInstance().setDarkMode(dark);
-        aplicarTemaVisual(dark);
+        String temaGuardado = usuarioInit.getTema();
+        boolean modoOscuro = "oscuro".equals(temaGuardado);
+        sesionInit.setDarkMode(modoOscuro);
+        aplicarVisual(modoOscuro);
 
-        actualizarBadgeNotificaciones();
         showDashboard();
     }
+    @FXML
+    public void mostrarDashboard() {
+        cargar("dashboard");
+        marcarNavegacionActiva(navegaDashboard);
+    }
 
-    // ── Navegación ────────────────────────────────────────
-    @FXML public void showDashboard()       { cargarPanelFxml("dashboard");       marcarNavegacionActiva(navDashboard); }
-    @FXML public void showGastos()          { cargarPanelFxml("gastos");          marcarNavegacionActiva(navGastos); }
-    @FXML public void showSimulador()       { cargarPanelFxml("simulador");       marcarNavegacionActiva(navSimulador); }
-@FXML public void showObjetivos()       { cargarPanelFxml("objetivos");       marcarNavegacionActiva(navObjetivos); }
-    @FXML public void showHistorial()       { cargarPanelFxml("historial");       marcarNavegacionActiva(navHistorial); }
-    @FXML public void showRenta()           { cargarPanelFxml("renta");           marcarNavegacionActiva(navRenta); }
-    @FXML public void showNotificaciones()  { cargarPanelFxml("notificaciones");  marcarNavegacionActiva(notifBtn);
-                                              notifDAO.marcarTodasLasNotificacionesComoLeidas(Session.getInstance().getUsuarioActual().getId());
-                                              notifBadge.setVisible(false); }
-    @FXML public void showPerfil()          { cargarPanelFxml("perfil");          marcarNavegacionActiva(avatarBtn); }
+    @FXML
+    public void showDashboard() {
+        mostrarDashboard();
+    }
+
+    @FXML
+    public void mostrarGasto() {
+        cargar("gastos");
+        marcarNavegacionActiva(navegaGastos);
+    }
+
+    @FXML
+    public void showGastos() {
+        mostrarGasto();
+    }
+
+    @FXML
+    public void mostrarSimulador() {
+        cargar("simulador");
+        marcarNavegacionActiva(navegaSimulador);
+    }
+
+    @FXML
+    public void showSimulador() {
+        mostrarSimulador();
+    }
+
+    @FXML
+    public void mostrarObjetivos() {
+        cargar("objetivos");
+        marcarNavegacionActiva(navegaObjetivos);
+    }
+
+    @FXML
+    public void showObjetivos() {
+        mostrarObjetivos();
+    }
+
+    @FXML
+    public void mostrarHistorial() {
+        cargar("historial");
+        marcarNavegacionActiva(navegaHistorial);
+    }
+
+    @FXML
+    public void showHistorial() {
+        mostrarHistorial();
+    }
+
+    @FXML
+    public void mostrarRenta() {
+        cargar("renta");
+        marcarNavegacionActiva(navegaRenta);
+    }
+
+    @FXML
+    public void showRenta() {
+        mostrarRenta();
+    }
+
+    @FXML
+    public void mostrarNotificaciones() {
+        cargar("notificaciones");
+        marcarNavegacionActiva(notBtn);
+    }
+
+    @FXML
+    public void showNotificaciones() {
+        mostrarNotificaciones();
+    }
+
+    @FXML
+    public void mostrarPerfil() {
+        cargar("perfil");
+        marcarNavegacionActiva(avatarBtn);
+    }
+
+    @FXML
+    public void showPerfil() {
+        mostrarPerfil();
+    }
 
     /** Carga un panel FXML en el área de contenido central de Fox Wallet. */
-    private void cargarPanelFxml(String nombreFxml) {
+    private void cargar(String nombreFxml) {
         try {
-            URL url = getClass().getResource("/com/finanzapp/fxml/" + nombreFxml + ".fxml");
-            if (url == null) { showPlaceholder(nombreFxml); return; }
-            FXMLLoader loader = new FXMLLoader(url);
-            Node node = loader.load();
-            // Pasa referencia al controlador raíz si el panel hijo lo necesita
-            Object ctrl = loader.getController();
-            if (ctrl instanceof ChildController) ((ChildController) ctrl).setMain(this);
-            contentArea.getChildren().setAll(node);
+            String rutaFxml = "/com/finanzapp/fxml/" + nombreFxml + ".fxml";
+            URL url = getClass().getResource(rutaFxml);
+
+            if (url == null) {
+                showPlaceholder(nombreFxml);
+                return;
+            }
+
+            FXMLLoader cargador = new FXMLLoader(url);
+            Node node = cargador.load();
+
+            Object controlador = cargador.getController();
+            if (controlador instanceof ControladorSecundario) {
+                ControladorSecundario contieneOscuro = (ControladorSecundario) controlador;
+                contieneOscuro.setMain(this);
+            }
+
+            areaDeContenido.getChildren().setAll(node);
+
         } catch (IOException e) {
             e.printStackTrace();
             showPlaceholder(nombreFxml);
@@ -81,52 +168,72 @@ public class MainController implements Initializable {
     }
 
     private void showPlaceholder(String nombreFxml) {
-        Label lbl = new Label("Vista '" + nombreFxml + "' en construcción");
-        lbl.setStyle("-fx-font-size:18px;-fx-text-fill:-color-text2;");
-        contentArea.getChildren().setAll(lbl);
+        String parteInicio = "Vista '";
+        String parteFin = "' en construcción";
+        String textoPlaceholder = parteInicio + nombreFxml + parteFin;
+        Label etiqueta = new Label(textoPlaceholder);
+        etiqueta.setStyle("-fx-font-size:18px;-fx-text-fill:-color-text2;");
+        areaDeContenido.getChildren().setAll(etiqueta);
     }
 
-    /** Marca el botón de navegación activo y desactiva el anterior. */
     private void marcarNavegacionActiva(Button botonActivo) {
-        for (Button b : new Button[]{navDashboard, navGastos, navSimulador,
-                                      navObjetivos, navHistorial, navRenta, notifBtn, avatarBtn}) {
-            if (b != null) b.getStyleClass().remove("nav-tab-active");
+        Button[] todosLosBotones = {
+            navegaDashboard, navegaGastos, navegaSimulador,
+            navegaObjetivos, navegaHistorial, navegaRenta, notBtn, avatarBtn
+        };
+
+        for (Button boton : todosLosBotones) {
+            if (boton != null) {
+                boton.getStyleClass().remove("nav-tab-active");
+            }
         }
-        if (botonActivo != null) botonActivo.getStyleClass().add("nav-tab-active");
+
+        if (botonActivo != null) {
+            botonActivo.getStyleClass().add("nav-tab-active");
+        }
     }
 
-    // ── Modo oscuro ───────────────────────────────────────
-    @FXML public void toggleDarkMode() {
-        boolean dark = !Session.getInstance().isDarkMode();
-        Session.getInstance().setDarkMode(dark);
-        aplicarTemaVisual(dark);
-        // Persistir preferencia de tema en la base de datos
-        int uid = Session.getInstance().getUsuarioActual().getId();
-        usuarioDAO.guardarPreferenciaTema(uid, dark ? "oscuro" : "claro");
-    }
+    //Modo oscuro
 
-    /** Aplica el tema visual (claro/oscuro) a la escena actual de Fox Wallet. */
-    private void aplicarTemaVisual(boolean modoOscuro) {
-        if (modoOscuro) {
-            if (!rootPane.getStyleClass().contains("dark"))
-                rootPane.getStyleClass().add("dark");
-            themeBtn.setText("☀️");
+    @FXML
+    public void toggleModoOscuro() {
+        Session sesionTema = Session.getInstance();
+        boolean modoOscuroActual = sesionTema.isDarkMode();
+        boolean nuevoModo = !modoOscuroActual;
+
+        sesionTema.setDarkMode(nuevoModo);
+        aplicarVisual(nuevoModo);
+
+        Usuario usuarioTema = sesionTema.getUsuarioActual();
+        int idUsuario = usuarioTema.getId();
+
+        if (nuevoModo) {
+            usuarioDAO.guardarPreferencia(idUsuario, "oscuro");
         } else {
-            rootPane.getStyleClass().remove("dark");
-            themeBtn.setText("🌙");
+            usuarioDAO.guardarPreferencia(idUsuario, "claro");
         }
     }
 
-    /** Actualiza el badge de notificaciones no leídas en la barra de navegación. */
-    public void actualizarBadgeNotificaciones() {
-        int uid = Session.getInstance().getUsuarioActual().getId();
-        long count = notifDAO.contarNotificacionesNoLeidas(uid);
-        notifBadge.setVisible(count > 0);
-        notifBadge.setText(count > 9 ? "9+" : String.valueOf(count));
+    @FXML
+    public void toggleDarkMode() {
+        toggleModoOscuro();
     }
 
-    /** Interfaz para paneles hijos que necesiten acceso al controlador principal. */
-    public interface ChildController {
+    /** Aplica el claro/oscuro. */
+    private void aplicarVisual(boolean modoOscuro) {
+        if (modoOscuro) {
+            boolean yaContiene = panelRoot.getStyleClass().contains("dark");
+            if (!yaContiene) {
+                panelRoot.getStyleClass().add("dark");
+            }
+            temaBtn.setText("☀️");
+        } else {
+            panelRoot.getStyleClass().remove("dark");
+            temaBtn.setText("🌙");
+        }
+    }
+
+    public interface ControladorSecundario {
         void setMain(MainController main);
     }
 }

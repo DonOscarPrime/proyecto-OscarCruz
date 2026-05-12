@@ -9,34 +9,31 @@
 
     <Label text="Ingresos y gastos" styleClass="page-title"/>
 
-    <!-- Stats -->
     <HBox spacing="12">
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Ingresos totales"  styleClass="stat-label"/>
-            <Label fx:id="statIngresos"     styleClass="stat-value stat-up"/>
-            <Label text="todos los movimientos" styleClass="stat-sub"/>
+            <Label text="Ingresos totales"       styleClass="stat-label"/>
+            <Label fx:id="estadisticaIngreso"    styleClass="stat-value stat-up"/>
+            <Label text="todos los movimientos"  styleClass="stat-sub"/>
         </VBox>
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Gastos totales"    styleClass="stat-label"/>
-            <Label fx:id="statGastos"       styleClass="stat-value stat-down"/>
-            <Label text="todos los movimientos" styleClass="stat-sub"/>
+            <Label text="Gastos totales"         styleClass="stat-label"/>
+            <Label fx:id="estadisticaGastos"     styleClass="stat-value stat-down"/>
+            <Label text="todos los movimientos"  styleClass="stat-sub"/>
         </VBox>
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Balance actual"    styleClass="stat-label"/>
-            <Label fx:id="statBalance"      styleClass="stat-value"/>
-            <Label fx:id="subBalance"       styleClass="stat-sub"/>
+            <Label text="Balance actual"         styleClass="stat-label"/>
+            <Label fx:id="estadisticaBalance"    styleClass="stat-value"/>
+            <Label fx:id="subBalance"            styleClass="stat-sub"/>
         </VBox>
         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-            <Label text="Tasa de ahorro"    styleClass="stat-label"/>
-            <Label fx:id="statTasa"         styleClass="stat-value"/>
-            <Label text="de ingresos ahorrado" styleClass="stat-sub"/>
+            <Label text="Tasa de ahorro"         styleClass="stat-label"/>
+            <Label fx:id="estadisticaTasa"       styleClass="stat-value"/>
+            <Label text="de ingresos ahorrado"   styleClass="stat-sub"/>
         </VBox>
     </HBox>
 
-    <!-- Two columns -->
     <HBox spacing="12" VBox.vgrow="ALWAYS">
 
-        <!-- Form -->
         <VBox styleClass="card" spacing="10" prefWidth="340" minWidth="300">
             <Label text="NUEVO MOVIMIENTO" styleClass="card-title"/>
 
@@ -59,18 +56,17 @@
             <DatePicker fx:id="dateFecha" maxWidth="Infinity" styleClass="form-input"/>
 
             <Label fx:id="lblMsg" wrapText="true" styleClass="info-label"/>
-            <Label fx:id="lblError" wrapText="true" styleClass="error-label"/>
+            <Label fx:id="TextoError" wrapText="true" styleClass="error-label"/>
 
             <Button text="Guardar movimiento" styleClass="btn-primary"
                     maxWidth="Infinity" onAction="#guardar"/>
         </VBox>
 
-        <!-- List -->
         <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="0">
             <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding:0 0 12 0;">
                 <Label text="MOVIMIENTOS" styleClass="card-title" HBox.hgrow="ALWAYS"/>
                 <ComboBox fx:id="cmbFiltroTipo" styleClass="form-input" prefWidth="120"/>
-                <TextField fx:id="txtBuscar" promptText="Buscar..." styleClass="form-input" prefWidth="140"/>
+                <TextField fx:id="TextoMensage" promptText="Buscar..." styleClass="form-input" prefWidth="140"/>
             </HBox>
             <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane" prefHeight="450">
                 <VBox fx:id="txList" spacing="0"/>

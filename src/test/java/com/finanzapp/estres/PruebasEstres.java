@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * PRUEBAS DE ESTRÉS — Rendimiento bajo carga.
- * Umbrales: 500 inserciones < 10 s · listado < 2 s
  */
 @DisplayName("Pruebas de Estrés")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -36,7 +35,7 @@ public class PruebasEstres {
             UsuarioDAO uDao = new UsuarioDAO();
             Usuario u = new Usuario();
             u.setNombre("Estres"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-            uDao.registrar(u, "estresPass");
+            uDao.registrarUsuario(u, "estresPass");
             uid = u.getId();
         }
     }
@@ -74,7 +73,7 @@ public class PruebasEstres {
         assumeTrue(dbOk && uid > 0);
         LocalDate hoy = LocalDate.now();
         long inicio = System.currentTimeMillis();
-        var lista = movimientoDAO.obtenerMovimientosPorMes(uid, hoy.getYear(), hoy.getMonthValue());
+        var lista = movimientoDAO.obtenerMovimientosMes(uid, hoy.getYear(), hoy.getMonthValue());
         long ms = System.currentTimeMillis() - inicio;
         System.out.printf("  %d registros en %d ms%n", lista.size(), ms);
         assertFalse(lista.isEmpty());

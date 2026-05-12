@@ -9,14 +9,7 @@ import java.sql.Connection;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * Pruebas de integración de {@link UsuarioDAO} de Fox Wallet.
- * <p>
- * Verifica contra la base de datos real el ciclo de vida completo de la cuenta:
- * registro de nueva cuenta con hash BCrypt, autenticación correcta e incorrecta,
- * y rechazo de email duplicado con la excepción esperada.
- * Requiere conexión activa a MySQL; si no está disponible se saltan con {@code assumeTrue}.
- */
+
 @DisplayName("UsuarioDAO — pruebas de integración")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UsuarioDAOTest {
@@ -46,7 +39,7 @@ public class UsuarioDAOTest {
         assumeTrue(dbOk, "MySQL no disponible");
         Usuario u = new Usuario();
         u.setNombre("JUnit User"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-        assertTrue(dao.registrarNuevoUsuario(u, "TestPass1234!"));
+        assertTrue(dao.registrarUsuario(u, "TestPass1234!"));
         assertTrue(u.getId() > 0);
         uid = u.getId();
     }
@@ -66,7 +59,7 @@ public class UsuarioDAOTest {
         Usuario dup = new Usuario();
         dup.setNombre("Dup"); dup.setEmail(EMAIL); dup.setComunidad("Madrid");
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> dao.registrarNuevoUsuario(dup, "otraPass!"));
+            () -> dao.registrarUsuario(dup, "otraPass!"));
         assertEquals("EMAIL_DUPLICADO", ex.getMessage());
     }
 }

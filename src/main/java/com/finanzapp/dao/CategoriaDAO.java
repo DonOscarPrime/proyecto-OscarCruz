@@ -8,56 +8,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Acceso a datos de la tabla {@code categorias} de Fox Wallet.
- * <p>
- * Las categorías clasifican los movimientos del usuario (gastos e ingresos)
- * y se filtran por tipo para mostrar solo las opciones relevantes en cada
- * formulario del panel de movimientos.
+ * Acceso a datos de la tabla categorias de Fox Wallet
+ * Permite obtener y filtrar las categorías de gastos e ingresos
  */
 public class CategoriaDAO {
 
     /**
-     * Devuelve todas las categorías del catálogo de Fox Wallet,
-     * tanto las de gasto como las de ingreso, ordenadas por id.
+     * Muestra todas las categorías disponibles ordenadas por id.
      */
     public List<Categoria> obtenerTodasLasCategorias() {
         List<Categoria> categorias = new ArrayList<>();
-        String consultaCategorias = "SELECT * FROM categorias ORDER BY id";
-        try (Connection conexion = DatabaseConnection.getConnection();
-             Statement stmt = conexion.createStatement();
-             ResultSet resultados = stmt.executeQuery(consultaCategorias)) {
-            while (resultados.next()) categorias.add(mapearCategoria(resultados));
-        } catch (SQLException e) { e.printStackTrace(); }
+        String sql = "SELECT * FROM categorias ORDER BY id";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Categoria categoria = mapearCategoria(rs);
+                categorias.add(categoria);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return categorias;
     }
 
-    /**
-     * Devuelve las categorías aplicables a un tipo de movimiento concreto.
-     * Incluye también las marcadas como {@code ambos} (p. ej. "Otros").
-     *
-     * @param tipoMovimiento {@code "gasto"} o {@code "ingreso"}
-     */
     public List<Categoria> obtenerCategoriasPorTipo(String tipoMovimiento) {
         List<Categoria> categorias = new ArrayList<>();
         String consultaCategoriasPorTipo =
                 "SELECT * FROM categorias WHERE tipo=? OR tipo='ambos' ORDER BY id";
+
         try (Connection conexion = DatabaseConnection.getConnection();
              PreparedStatement stmt = conexion.prepareStatement(consultaCategoriasPorTipo)) {
+
             stmt.setString(1, tipoMovimiento);
             ResultSet resultados = stmt.executeQuery();
-            while (resultados.next()) categorias.add(mapearCategoria(resultados));
-        } catch (SQLException e) { e.printStackTrace(); }
+
+            while (resultados.next()) {
+                Categoria categoria = mapearCategoria(resultados);
+                categorias.add(categoria);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return categorias;
     }
 
-    /** Construye un objeto {@link Categoria} a partir de la fila actual del {@link ResultSet}. */
+    /** Construye un objeto Categoria a partir de la fila actual del ResultSet. */
     private Categoria mapearCategoria(ResultSet resultados) throws SQLException {
         Categoria categoria = new Categoria();
+
         categoria.setId(resultados.getInt("id"));
         categoria.setNombre(resultados.getString("nombre"));
         categoria.setEmoji(resultados.getString("emoji"));
         categoria.setTipo(resultados.getString("tipo"));
         categoria.setColor(resultados.getString("color"));
+
         return categoria;
     }
 }

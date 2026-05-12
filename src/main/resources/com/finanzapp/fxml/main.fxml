@@ -7,10 +7,9 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.finanzapp.controller.MainController"
-            fx:id="rootPane"
+            fx:id="panelRoot"
             styleClass="root-pane" prefWidth="1200" prefHeight="750">
 
-    <!-- ── TOP NAV ── -->
     <top>
         <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="6">
             <HBox alignment="CENTER_LEFT" spacing="7">
@@ -20,31 +19,26 @@
                 <Label text="Fox Wallet" styleClass="logo"/>
             </HBox>
             <HBox spacing="4" HBox.hgrow="ALWAYS">
-                <Button fx:id="navDashboard"      text="Dashboard"      styleClass="nav-tab,nav-tab-active" onAction="#showDashboard"/>
-                <Button fx:id="navGastos"         text="Ingresos/Gastos" styleClass="nav-tab"              onAction="#showGastos"/>
-                <Button fx:id="navSimulador"      text="Simulador"      styleClass="nav-tab"               onAction="#showSimulador"/>
-<Button fx:id="navObjetivos"      text="Objetivos"      styleClass="nav-tab"               onAction="#showObjetivos"/>
-                <Button fx:id="navHistorial"      text="Historial"      styleClass="nav-tab"               onAction="#showHistorial"/>
-                <Button fx:id="navRenta"          text="Renta"          styleClass="nav-tab"               onAction="#showRenta"/>
+                <Button fx:id="navegaDashboard"      text="Dashboard"      styleClass="nav-tab,nav-tab-active" onAction="#mostrarDashboard"/>
+                <Button fx:id="navegaGastos"         text="Ingresos/Gastos" styleClass="nav-tab"              onAction="#mostrarGasto"/>
+                <Button fx:id="navegaSimulador"      text="Simulador"      styleClass="nav-tab"               onAction="#mostrarSimulador"/>
+<Button fx:id="navegaObjetivos"      text="Objetivos"      styleClass="nav-tab"               onAction="#mostrarObjetivos"/>
+                <Button fx:id="navegaHistorial"      text="Historial"      styleClass="nav-tab"               onAction="#mostrarHistorial"/>
+                <Button fx:id="navegaRenta"          text="Renta"          styleClass="nav-tab"               onAction="#mostrarRenta"/>
             </HBox>
-            <!-- Notificaciones badge -->
-            <StackPane>
-                <Button fx:id="notifBtn" text="🔔" styleClass="nav-tab" onAction="#showNotificaciones"/>
-                <Label fx:id="notifBadge" styleClass="notif-badge" visible="false"/>
-            </StackPane>
+
+            <Button fx:id="notBtn" text="🔔" styleClass="nav-tab" onAction="#mostrarNotificaciones"/>
             <!-- Toggle modo oscuro -->
-            <Button fx:id="themeBtn" text="🌙" styleClass="theme-toggle-btn" onAction="#toggleDarkMode">
+            <Button fx:id="temaBtn" text="🌙" styleClass="theme-toggle-btn" onAction="#toggleModoOscuro">
                 <tooltip><Tooltip text="Cambiar tema"/></tooltip>
             </Button>
-            <!-- Avatar -->
-            <Button fx:id="avatarBtn" styleClass="avatar-btn" onAction="#showPerfil"/>
+            <Button fx:id="avatarBtn" styleClass="avatar-btn" onAction="#mostrarPerfil"/>
         </HBox>
     </top>
 
-    <!-- ── CONTENT AREA ── -->
     <center>
         <ScrollPane fitToWidth="true" styleClass="scroll-pane" fx:id="scrollPane">
-            <StackPane fx:id="contentArea" styleClass="content-area"/>
+            <StackPane fx:id="areaDeContenido" styleClass="content-area"/>
         </ScrollPane>
     </center>
 

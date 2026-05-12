@@ -3,7 +3,7 @@ package com.finanzapp.seguridad;
 import com.finanzapp.dao.UsuarioDAO;
 import com.finanzapp.model.Usuario;
 import com.finanzapp.util.DatabaseConnection;
-import com.finanzapp.util.LoginAttemptService;
+import com.finanzapp.util.LoginMonitorService;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -12,14 +12,7 @@ import java.sql.Connection;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * PRUEBAS DE SEGURIDAD de Fox Wallet — Contraseñas, bloqueo de acceso e inyección SQL.
- * <p>
- * Verifica que las contraseñas se almacenan con BCrypt (nunca en texto plano),
- * que el mecanismo de bloqueo por intentos fallidos ({@link com.finanzapp.util.LoginAttemptService})
- * actúa correctamente tras 5 intentos incorrectos, y que el sistema es resistente
- * a ataques de inyección SQL en los campos de login.
- */
+
 @DisplayName("Pruebas de Seguridad")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PruebasSeguridad {
@@ -39,15 +32,15 @@ public class PruebasSeguridad {
             usuarioDAO = new UsuarioDAO();
             Usuario u = new Usuario();
             u.setNombre("Usuario Seg"); u.setEmail(EMAIL); u.setComunidad("Madrid");
-            usuarioDAO.registrarNuevoUsuario(u, PASSWORD);
+            usuarioDAO.registrarUsuario(u, PASSWORD);
             uid = u.getId();
         }
-        LoginAttemptService.reset();
+        LoginMonitorService.reset();
     }
 
     @AfterAll
     static void teardown() {
-        LoginAttemptService.reset();
+        LoginMonitorService.reset();
         if (dbOk && uid > 0) {
             try (Connection c = DatabaseConnection.getConnection()) {
                 c.createStatement().executeUpdate("DELETE FROM usuarios WHERE id=" + uid);
@@ -69,13 +62,13 @@ public class PruebasSeguridad {
     @DisplayName("SEG-02: La cuenta se bloquea tras demasiados intentos fallidos")
     void testBloqueoLogin() {
         String email = "victima@test.com";
-        LoginAttemptService.reset();
-        for (int i = 0; i < LoginAttemptService.MAX_INTENTOS; i++) {
-            LoginAttemptService.registrarFallo(email);
+        LoginMonitorService.reset();
+        for (int i = 0; i < LoginMonitorService.MAX_INTENTOS; i++) {
+            LoginMonitorService.registrarFallo(email);
         }
-        assertTrue(LoginAttemptService.estaBloqueado(email));
-        LoginAttemptService.registrarExito(email);
-        assertFalse(LoginAttemptService.estaBloqueado(email));
+        assertTrue(LoginMonitorService.estaBloqueado(email));
+        LoginMonitorService.registrarExito(email);
+        assertFalse(LoginMonitorService.estaBloqueado(email));
     }
 
     @Test @Order(3)

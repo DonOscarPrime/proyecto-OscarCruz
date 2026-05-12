@@ -3,13 +3,7 @@ package com.finanzapp.util;
 import java.sql.*;
 
 /**
- * Gestiona la conexión singleton a la base de datos MySQL de Fox Wallet.
- * <p>
- * Si la base de datos {@code foxwallet} no existe al arrancar la aplicación,
- * la crea automáticamente con charset UTF-8 y delega en {@link DatabaseInitializer}
- * la creación de todas las tablas y los datos de demostración.
- * <p>
- * <b>Configuración:</b> cambia {@code PASSWORD} si tu MySQL no usa {@code "1234"}.
+ Esta clase se encarga de la conexión con la base de datos MySQL
  */
 public class DatabaseConnection {
 
@@ -17,76 +11,93 @@ public class DatabaseConnection {
     private static final String PORT     = "3306";
     private static final String DATABASE = "finanzapp";
     private static final String USER     = "root";
-    private static final String PASSWORD = "1234";   // ← cambia esto si tu MySQL usa otra contraseña
+    private static final String PASSWORD = "12345";
 
-    /** URL de conexión sin base de datos (usada solo para crearla si no existe). */
     private static final String URL_SIN_BD =
             "jdbc:mysql://" + HOST + ":" + PORT +
             "?useSSL=false&serverTimezone=Europe/Madrid&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
 
-    /** URL de conexión completa a la base de datos de Fox Wallet. */
     private static final String URL_FOX_WALLET =
             "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE +
             "?useSSL=false&serverTimezone=Europe/Madrid&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
 
     private static Connection conexionActiva;
-    private static boolean    esquemaInicializado = false;
+    private static boolean esquemaInicializado = false;
 
-    /**
-     * Devuelve la conexión singleton a MySQL.
-     * Si está cerrada o es nula, abre una nueva (creando la BD si es necesario)
-     * e inicializa el esquema de Fox Wallet la primera vez.
-     */
+
     public static Connection getConnection() throws SQLException {
-        if (conexionActiva == null || conexionActiva.isClosed()) {
+        boolean conexionNula = (conexionActiva == null);
+        boolean conexionCerrada = false;
+
+        if (!conexionNula) {
+            conexionCerrada = conexionActiva.isClosed();
+        }
+
+        if (conexionNula || conexionCerrada) {
             conexionActiva = conectarOCrearBaseDatos();
+
             if (!esquemaInicializado) {
                 DatabaseInitializer.inicializarEsquemaFoxWallet(conexionActiva);
                 esquemaInicializado = true;
             }
         }
+
         return conexionActiva;
     }
 
-    /**
-     * Intenta abrir conexión a la base de datos de Fox Wallet.
-     * Si MySQL devuelve el error 1049 (base de datos inexistente),
-     * la crea con UTF-8 y reintenta la conexión.
-     */
     private static Connection conectarOCrearBaseDatos() throws SQLException {
         try {
-            return DriverManager.getConnection(URL_FOX_WALLET, USER, PASSWORD);
+            Connection con = DriverManager.getConnection(URL_FOX_WALLET, USER, PASSWORD);
+            System.out.println("[FoxWallet] Conectado a MySQL " + HOST + ":" + PORT + "/" + DATABASE);
+            return con;
+
         } catch (SQLException errorConexion) {
-            if (errorConexion.getErrorCode() == 1049) { // Unknown database
+
+            if (errorConexion.getErrorCode() == 1049) {
+                System.out.println("[FoxWallet] Base de datos '" + DATABASE + "' no existe → creando...");
+
                 try (Connection conexionBase = DriverManager.getConnection(URL_SIN_BD, USER, PASSWORD);
-                     Statement stmtCrear     = conexionBase.createStatement()) {
+                     Statement stmtCrear = conexionBase.createStatement()) {
+
                     stmtCrear.execute(
                         "CREATE DATABASE " + DATABASE +
                         " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
                 }
+
+                System.out.println("[FoxWallet] Base de datos creada con UTF-8.");
                 return DriverManager.getConnection(URL_FOX_WALLET, USER, PASSWORD);
             }
+
+            if (errorConexion.getErrorCode() == 1045) {
+                System.err.println("[FoxWallet] ERROR 1045: contraseña/usuario incorrectos.");
+                System.err.println("           Edita PASSWORD en DatabaseConnection.java (actual: '" + PASSWORD + "').");
+            } else {
+                String mensajeError = errorConexion.getMessage();
+                boolean mensajeNoNulo = mensajeError != null;
+                boolean esErrorConexion = mensajeNoNulo && mensajeError.toLowerCase().contains("communications link failure");
+                if (esErrorConexion) {
+                    System.err.println("[FoxWallet] ERROR de conexión: ¿está arrancado el servicio MySQL en " + HOST + ":" + PORT + "?");
+                }
+            }
+
             throw errorConexion;
         }
     }
 
-    /**
-     * Cierra la conexión activa a MySQL.
-     * Se llama desde {@link com.finanzapp.MainApp#stop()} al cerrar Fox Wallet.
-     */
     public static void cerrarConexion() {
         try {
-            if (conexionActiva != null && !conexionActiva.isClosed()) {
-                conexionActiva.close();
+            boolean conexionExiste = (conexionActiva != null);
+
+            if (conexionExiste) {
+                boolean estaAbierta = !conexionActiva.isClosed();
+                if (estaAbierta) {
+                    conexionActiva.close();
+                }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * @deprecated Usar {@link #cerrarConexion()} para mayor claridad.
-     */
-    @Deprecated
-    public static void closeConnection() { cerrarConexion(); }
 }
